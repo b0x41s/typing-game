@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HackType — 10 vinger blindtypen</title>
+  <meta name="description" content="HackType is een snelle 60-seconden typgame met hacker vibe. Train je 10-vinger blindtypen met scherpe stats.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="shell" aria-labelledby="page-title">
+    <header class="top">
+      <h1 id="page-title">HackType</h1>
+      <p class="tagline">60 seconden pure focus zoals in de Tex-Tribe war room.</p>
+    </header>
+
+    <section class="panel" aria-live="off">
+      <div class="display" id="display" aria-live="polite"></div>
+      <label for="input" class="sr-only">Typ het weergegeven woord</label>
+      <input id="input" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="stats" disabled>
+
+      <div class="stats" id="stats" role="status" aria-live="polite">
+        <div class="stat">
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#tachometer"></use></svg>
+          <span class="label">WPM</span>
+          <span id="wpm" class="value">0</span>
+        </div>
+        <div class="stat">
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#target"></use></svg>
+          <span class="label">Accuracy</span>
+          <span id="acc" class="value">100%</span>
+        </div>
+        <div class="stat">
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#timer"></use></svg>
+          <span class="label">Tijd</span>
+          <span id="time" class="value">60s</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="start" type="button" class="btn primary" aria-label="Start HackType">
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#play"></use></svg>
+          Start
+        </button>
+        <button id="reset" type="button" class="btn" aria-label="Reset HackType" disabled>
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#refresh"></use></svg>
+          Reset
+        </button>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <p>HackType by een Tex-Tribe geest — houd de terminal scherp.</p>
+    </footer>
+  </main>
+
+  <div id="live-region" class="sr-only" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>

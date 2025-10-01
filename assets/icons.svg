@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="play" viewBox="0 0 24 24">
+    <path d="M5 3v18l15-9-15-9z" />
+  </symbol>
+  <symbol id="refresh" viewBox="0 0 24 24">
+    <path d="M12 5a7 7 0 0 1 7 7h2l-3 3-3-3h2a5 5 0 1 0-1.47 3.55l1.42 1.41A7 7 0 1 1 12 5z" />
+  </symbol>
+  <symbol id="timer" viewBox="0 0 24 24">
+    <path d="M9 1h6v2H9V1zm3 4a8 8 0 1 1-8 8 8 8 0 0 1 8-8zm0 2a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm-1 1h2v5h-2zm6-1.59 2-2L22.59 6l-2 2z" />
+  </symbol>
+  <symbol id="tachometer" viewBox="0 0 24 24">
+    <path d="M12 4a9 9 0 1 1-9 9 9 9 0 0 1 9-9zm0 2a7 7 0 1 0 7 7 7 7 0 0 0-7-7zm6.32 11.15-3.38-3.39a2 2 0 1 0-2.13-.51l-3.39 3.39 1.42 1.41 3.39-3.38a2 2 0 0 0 2.13.51l3.39 3.38z" />
+  </symbol>
+  <symbol id="target" viewBox="0 0 24 24">
+    <path d="M11 2h2v2.07A8.005 8.005 0 0 1 19.93 11H22v2h-2.07A8.005 8.005 0 0 1 13 19.93V22h-2v-2.07A8.005 8.005 0 0 1 4.07 13H2v-2h2.07A8.005 8.005 0 0 1 11 4.07zm1 4a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 2a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 2a2 2 0 1 0 2 2 2 2 0 0 0-2-2z" />
+  </symbol>
+</svg>
