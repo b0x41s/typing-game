@@ -7,6 +7,8 @@ HackType is een statische 60-seconden typchallenge met een donkere Tex-Tribe uit
 - 60s countdown met live WPM (5-cpm norm) en accuracy op basis van alle ingevoerde tekens.
 - Woordrotatie over 300+ tech/hacker termen, zonder herhaling tot een volle ronde voorbij is.
 - Toets-achtige inputfeedback met groene prefix-highlights en subtiele foutmelding.
+- Caps Lock waarschuwing zodat je niet per ongeluk in kapitalen blijft hangen.
+- Visueel toetsenbord dat meeloopt met je aanslagen voor snelle blik naar vingerpositie.
 - Volledig client-side: werkt offline, geen externe bibliotheken of fonts nodig.
 
 ## Hoe speel je

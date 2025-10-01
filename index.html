@@ -17,7 +17,81 @@
     <section class="panel" aria-live="off">
       <div class="display" id="display" aria-live="polite"></div>
       <label for="input" class="sr-only">Typ het weergegeven woord</label>
-      <input id="input" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="stats" disabled>
+      <input id="input" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="stats caps-warning" disabled>
+      <p id="caps-warning" class="caps" role="alert" aria-live="assertive" hidden>Caps Lock staat aan.</p>
+
+      <div class="keyboard" aria-hidden="true">
+        <div class="row">
+          <span data-key="`" data-code="Backquote">~</span>
+          <span data-key="1" data-code="Digit1">1</span>
+          <span data-key="2" data-code="Digit2">2</span>
+          <span data-key="3" data-code="Digit3">3</span>
+          <span data-key="4" data-code="Digit4">4</span>
+          <span data-key="5" data-code="Digit5">5</span>
+          <span data-key="6" data-code="Digit6">6</span>
+          <span data-key="7" data-code="Digit7">7</span>
+          <span data-key="8" data-code="Digit8">8</span>
+          <span data-key="9" data-code="Digit9">9</span>
+          <span data-key="0" data-code="Digit0">0</span>
+          <span data-key="-" data-code="Minus">-</span>
+          <span data-key="=" data-code="Equal">=</span>
+          <span class="key-wide" data-key="Backspace" data-code="Backspace">Backspace</span>
+        </div>
+        <div class="row">
+          <span class="key-medium" data-key="Tab" data-code="Tab">Tab</span>
+          <span data-key="q" data-code="KeyQ">Q</span>
+          <span data-key="w" data-code="KeyW">W</span>
+          <span data-key="e" data-code="KeyE">E</span>
+          <span data-key="r" data-code="KeyR">R</span>
+          <span data-key="t" data-code="KeyT">T</span>
+          <span data-key="y" data-code="KeyY">Y</span>
+          <span data-key="u" data-code="KeyU">U</span>
+          <span data-key="i" data-code="KeyI">I</span>
+          <span data-key="o" data-code="KeyO">O</span>
+          <span data-key="p" data-code="KeyP">P</span>
+          <span data-key="[" data-code="BracketLeft">[</span>
+          <span data-key="]" data-code="BracketRight">]</span>
+          <span data-key="\\" data-code="Backslash">\</span>
+        </div>
+        <div class="row">
+          <span class="key-large" data-key="CapsLock" data-code="CapsLock">Caps</span>
+          <span data-key="a" data-code="KeyA">A</span>
+          <span data-key="s" data-code="KeyS">S</span>
+          <span data-key="d" data-code="KeyD">D</span>
+          <span data-key="f" data-code="KeyF">F</span>
+          <span data-key="g" data-code="KeyG">G</span>
+          <span data-key="h" data-code="KeyH">H</span>
+          <span data-key="j" data-code="KeyJ">J</span>
+          <span data-key="k" data-code="KeyK">K</span>
+          <span data-key="l" data-code="KeyL">L</span>
+          <span data-key=";" data-code="Semicolon">;</span>
+          <span data-key="'" data-code="Quote">'</span>
+          <span class="key-large" data-key="Enter" data-code="Enter">Enter</span>
+        </div>
+        <div class="row">
+          <span class="key-extra" data-key="Shift" data-code="ShiftLeft">Shift</span>
+          <span data-key="z" data-code="KeyZ">Z</span>
+          <span data-key="x" data-code="KeyX">X</span>
+          <span data-key="c" data-code="KeyC">C</span>
+          <span data-key="v" data-code="KeyV">V</span>
+          <span data-key="b" data-code="KeyB">B</span>
+          <span data-key="n" data-code="KeyN">N</span>
+          <span data-key="m" data-code="KeyM">M</span>
+          <span data-key="," data-code="Comma">,</span>
+          <span data-key="." data-code="Period">.</span>
+          <span data-key="/" data-code="Slash">/</span>
+          <span class="key-extra" data-key="Shift" data-code="ShiftRight">Shift</span>
+        </div>
+        <div class="row">
+          <span class="key-medium" data-key="Control" data-code="ControlLeft">Ctrl</span>
+          <span class="key-medium" data-key="Meta" data-code="MetaLeft">Cmd</span>
+          <span class="key-medium" data-key="Alt" data-code="AltLeft">Alt</span>
+          <span class="key-space" data-key=" " data-code="Space">Space</span>
+          <span class="key-medium" data-key="AltGraph" data-code="AltRight">AltGr</span>
+          <span class="key-medium" data-key="ContextMenu" data-code="ContextMenu">Menu</span>
+          <span class="key-medium" data-key="Control" data-code="ControlRight">Ctrl</span>
+        </div>
+      </div>
 
       <div class="stats" id="stats" role="status" aria-live="polite">
         <div class="stat">

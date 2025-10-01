@@ -8,19 +8,49 @@
   const startBtn = document.getElementById('start');
   const resetBtn = document.getElementById('reset');
   const liveRegion = document.getElementById('live-region');
+  const capsWarning = document.getElementById('caps-warning');
+  const keyboardKeys = Array.from(document.querySelectorAll('.keyboard span'));
+  const codeToKeyEl = new Map();
+  const keyToKeyEl = new Map();
+
+  keyboardKeys.forEach((el) => {
+    const { key, code } = el.dataset;
+    if (code) {
+      codeToKeyEl.set(code, el);
+    }
+    if (key) {
+      const normalized = key.length === 1 ? key.toLowerCase() : key;
+      if (!keyToKeyEl.has(normalized)) {
+        keyToKeyEl.set(normalized, el);
+      }
+    }
+  });
+
+  let capsActive = false;
 
   const fallbackWords = [
-    'root', 'sudo', 'proxy', 'packet', 'cipher', 'payload', 'kernel', 'buffer', 'encode',
-    'decode', 'binary', 'token', 'hash', 'nonce', 'http', 'https', 'json', 'yaml', 'linux',
-    'docker', 'nginx', 'auth', 'jwt', 'csrf', 'xss', 'sqli', 'rce', 'lfi', 'fuzz', 'nmap',
-    'hydra', 'burp', 'wireshark', 'pcap', 'mitm', 'tcp', 'udp', 'dns', 'ssh', 'scp', 'git',
-    'push', 'pull', 'branch', 'merge', 'diff', 'patch', 'commit', 'tag', 'gpg', 'aes', 'rsa',
-    'ecc', 'salt', 'pepper', 'rainbow', 'sandbox', 'vm', 'hypervisor', 'checksum', 'sha256',
-    'argon2', 'passphrase', 'regex', 'encrypt', 'decrypt', 'botnet', 'beacon', 'webhook',
-    'api', 'shellcode', 'syscall', 'uptime', 'latency', 'mutex', 'thread', 'cron', 'systemd',
-    'kube', 'pod', 'cluster', 'vault', 'consul', 'spectre', 'meltdown', 'entropy', 'prng',
-    'ciphertext', 'plaintext', 'honeypot', 'phishing', 'debug', 'profile', 'benchmark',
-    'bytecode', 'firewall', 'suricata', 'recon', 'telemetry', 'logstash', 'kibana', 'cloudtrail'
+    'ls', 'pwd', 'cd', 'mkdir', 'rm', 'chmod', 'chown', 'sudo', 'nano', 'vim', 'nvim', 'cat',
+    'less', 'tail', 'grep', 'rg', 'awk', 'sed', 'cut', 'sort', 'uniq', 'tr', 'tee', 'find',
+    'locate', 'touch', 'stat', 'du', 'df', 'mount', 'umount', 'ln', 'kill', 'pkill', 'ps',
+    'top', 'htop', 'systemctl', 'journalctl', 'service', 'dmesg', 'lsmod', 'ip', 'route',
+    'ss', 'nmap', 'masscan', 'sqlmap', 'hydra', 'john', 'hashcat', 'wfuzz', 'ffuf',
+    'gobuster', 'feroxbuster', 'amass', 'subfinder', 'dnsenum', 'dnsrecon', 'dig', 'whois',
+    'curl', 'wget', 'httpie', 'mitmproxy', 'burpsuite', 'zap', 'nikto', 'metasploit',
+    'msfconsole', 'meterpreter', 'payload', 'reverse', 'bindshell', 'listener', 'netcat',
+    'nc', 'socat', 'proxychains', 'ufw', 'suricata', 'zeek', 'tshark', 'wireshark',
+    'bettercap', 'arpspoof', 'macchanger', 'reaver', 'wifite', 'router', 'switch', 'subnet',
+    'netmask', 'localhost', 'responder', 'impacket', 'psexec', 'wmiexec', 'rdp', 'xfreerdp',
+    'mimikatz', 'powercat', 'powershell', 'cmd', 'bash', 'zsh', 'python', 'python3', 'ruby',
+    'node', 'npx', 'go', 'rustc', 'gcc', 'clang', 'make', 'cmake', 'ninja', 'cargo', 'pip',
+    'virtualenv', 'ansible', 'terraform', 'docker', 'kubectl', 'helm', 'aws', 'gcloud',
+    'vault', 'consul', 'psql', 'mysql', 'sqlite', 'mongo', 'redis', 'ssh', 'sshpass', 'scp',
+    'rsync', 'ftp', 'git', 'clone', 'pull', 'push', 'merge', 'rebase', 'diff', 'patch', 'gpg',
+    'openssl', 'sha256sum', 'strings', 'xxd', 'binwalk', 'radare2', 'ghidra', 'gdb',
+    'pwndbg', 'strace', 'ltrace', 'qemu', 'vmrun', 'alacritty', 'kitty', 'tmux', 'zellij',
+    'iostat', 'iftop', 'iperf', 'wrk', 'hping', 'scapy', 'tor', 'wireguard', 'openvpn',
+    'seclists', 'rockyou', 'ripgrep', 'fzf', 'ranger', 'neofetch', 'bpytop', 'btop',
+    'slowloris', 'spectre', 'meltdown', 'rowhammer', 'eternalblue', 'wannacry', 'stuxnet',
+    'apt29', 'lazarus'
   ];
 
   const state = {
@@ -37,6 +67,49 @@
     currentWord: '',
     lastInputLength: 0
   };
+
+  const activeKeyEls = new Set();
+
+  function setCapsState(active) {
+    capsActive = Boolean(active);
+    if (capsWarning) {
+      capsWarning.hidden = !capsActive;
+    }
+  }
+
+  function findKeyElement(event) {
+    if (event.code && codeToKeyEl.has(event.code)) {
+      return codeToKeyEl.get(event.code);
+    }
+    if (typeof event.key === 'string') {
+      const normalized = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      if (keyToKeyEl.has(normalized)) {
+        return keyToKeyEl.get(normalized);
+      }
+    }
+    return null;
+  }
+
+  function setKeyHighlight(event, active) {
+    const el = findKeyElement(event);
+    if (!el) {
+      return;
+    }
+    if (active) {
+      el.classList.add('active');
+      activeKeyEls.add(el);
+    } else {
+      el.classList.remove('active');
+      activeKeyEls.delete(el);
+    }
+  }
+
+  function clearKeyHighlights() {
+    activeKeyEls.forEach((el) => {
+      el.classList.remove('active');
+    });
+    activeKeyEls.clear();
+  }
 
   // Schudt de lijst zodat woorden pas herhaald worden na een volledige ronde.
   function shuffle(list) {
@@ -247,6 +320,7 @@
     inputEl.classList.remove('input-error');
 
     startBtn.disabled = false;
+    clearKeyHighlights();
     announce(`Tijd is op. ${wpmEl.textContent} woorden per minuut, ${accEl.textContent} nauwkeurigheid.`);
   }
 
@@ -261,6 +335,9 @@
     state.currentWord = '';
     state.queue = [];
     state.lastInputLength = 0;
+
+    setCapsState(false);
+    clearKeyHighlights();
 
     inputEl.value = '';
     inputEl.disabled = true;
@@ -313,9 +390,21 @@
   }
 
   function handleKeydown(event) {
+    setKeyHighlight(event, true);
+    if (typeof event.getModifierState === 'function') {
+      setCapsState(event.getModifierState('CapsLock'));
+    }
+
     if (event.key === 'Enter' && state.finished) {
       event.preventDefault();
       startGame();
+    }
+  }
+
+  function handleKeyup(event) {
+    setKeyHighlight(event, false);
+    if (typeof event.getModifierState === 'function') {
+      setCapsState(event.getModifierState('CapsLock'));
     }
   }
 
@@ -351,6 +440,7 @@
 
   inputEl.addEventListener('input', handleInput);
   document.addEventListener('keydown', handleKeydown);
+  document.addEventListener('keyup', handleKeyup);
 
   window.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
