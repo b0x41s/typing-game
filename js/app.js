@@ -1,369 +1,214 @@
-(() => {
-  const DURATION = 60;
-  const displayEl = document.getElementById('display');
-  const inputEl = document.getElementById('input');
-  const wpmEl = document.getElementById('wpm');
-  const accEl = document.getElementById('acc');
-  const timeEl = document.getElementById('time');
-  const startBtn = document.getElementById('start');
-  const resetBtn = document.getElementById('reset');
-  const liveRegion = document.getElementById('live-region');
+// Elementen
+const display = document.getElementById('display');
+const input = document.getElementById('input');
+const startBtn = document.getElementById('start');
+const resetBtn = document.getElementById('reset');
+const wpmEl = document.getElementById('wpm');
+const accEl = document.getElementById('acc');
+const timeEl = document.getElementById('time');
+const capsEl = document.getElementById('caps');
 
-  const fallbackWords = [
-    'root', 'sudo', 'proxy', 'packet', 'cipher', 'payload', 'kernel', 'buffer', 'encode',
-    'decode', 'binary', 'token', 'hash', 'nonce', 'http', 'https', 'json', 'yaml', 'linux',
-    'docker', 'nginx', 'auth', 'jwt', 'csrf', 'xss', 'sqli', 'rce', 'lfi', 'fuzz', 'nmap',
-    'hydra', 'burp', 'wireshark', 'pcap', 'mitm', 'tcp', 'udp', 'dns', 'ssh', 'scp', 'git',
-    'push', 'pull', 'branch', 'merge', 'diff', 'patch', 'commit', 'tag', 'gpg', 'aes', 'rsa',
-    'ecc', 'salt', 'pepper', 'rainbow', 'sandbox', 'vm', 'hypervisor', 'checksum', 'sha256',
-    'argon2', 'passphrase', 'regex', 'encrypt', 'decrypt', 'botnet', 'beacon', 'webhook',
-    'api', 'shellcode', 'syscall', 'uptime', 'latency', 'mutex', 'thread', 'cron', 'systemd',
-    'kube', 'pod', 'cluster', 'vault', 'consul', 'spectre', 'meltdown', 'entropy', 'prng',
-    'ciphertext', 'plaintext', 'honeypot', 'phishing', 'debug', 'profile', 'benchmark',
-    'bytecode', 'firewall', 'suricata', 'recon', 'telemetry', 'logstash', 'kibana', 'cloudtrail'
-  ];
+// Woordenlijsten per moeilijkheid
+const EASY = [
+  "ls", "pwd", "whoami", "id", "date", "uptime", "clear", "echo test", "cat README.md",
+  "touch notes.txt", "mkdir tmp", "rmdir tmp", "cd ..", "cd /", "uname -a", "hostname",
+  "df -h", "du -sh .", "free -h", "head -n 5 file.txt", "tail -n 5 file.txt", "cp a b",
+  "mv a b", "rm a", "grep TODO file.txt", "ps aux", "kill -9 1", "top", "htop", "env",
+  "history", "logout", "ssh user@host", "scp a b", "man ls", "less file.txt", "more file.txt",
+  "chmod 644 file", "chown user file", "which python3", "whereis bash", "ln -s a b", "find .",
+  "printf ok", "sed -n '1,5p' file.txt", "wc -l file.txt"
+];
 
-  const state = {
-    words: [],
-    queue: [],
-    timerId: null,
-    startedAt: null,
-    elapsed: 0,
-    remaining: DURATION,
-    started: false,
-    finished: false,
-    totalTyped: 0,
-    correctChars: 0,
-    currentWord: '',
-    lastInputLength: 0
-  };
+const MEDIUM = [
+  "ls -l", "ls -la", "ls -ltr", "ls -ltra", "grep -i error syslog",
+  "grep -R password .", "awk '{print $1}' file.txt", "cut -d: -f1 /etc/passwd",
+  "sort file.txt", "sort -u file.txt", "uniq -c file.txt",
+  "tar -czf backup.tgz dir/", "tar -xzf backup.tgz",
+  "curl -I https://example.com", "curl -s https://example.com",
+  "wget https://example.com/file", "ping -c 3 8.8.8.8",
+  "tr -d '\\r' < in > out", "ps aux --forest", "journalctl -xe",
+  "systemctl status ssh", "systemctl restart ssh", "service ssh status",
+  "ip a", "ip r", "ip link", "ss -tulpn", "netstat -tulpen",
+  "dig a example.com", "dig +short txt example.com", "host example.com",
+  "nslookup example.com", "iptables -L", "ufw status",
+  "docker ps", "docker images", "docker logs -f web",
+  "git status", "git add -A", "git commit -m \"msg\"", "git push",
+  "python3 -V", "python3 -m venv .venv", "source .venv/bin/activate",
+  "pip install requests", "node -v", "npm -v", "npm init -y"
+];
 
-  // Schudt de lijst zodat woorden pas herhaald worden na een volledige ronde.
-  function shuffle(list) {
-    const arr = [...list];
-    for (let i = arr.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
+const HARD = [
+  "python3 -m http.server 8000",
+  "ssh -i ~/.ssh/id_rsa user@server",
+  "rsync -avz src/ user@host:/var/www/",
+  "find . -type f -name \"*.log\" -mtime -1",
+  "grep -R --line-number --color=always \"token\" .",
+  "awk -F: '{if($3==0) print $1}' /etc/passwd",
+  "sed -E 's/(passw)[^ ]+/***REDACTED***/g' file.txt",
+  "tar -czf backup-$(date +%F).tgz /etc /var/www",
+  "journalctl -u nginx --since \"-1h\"",
+  "systemctl list-unit-files | grep enabled",
+  "curl -H \"Authorization: Bearer X\" https://api.example.com/v1",
+  "curl -sSLo /tmp/app.tgz https://example.com/app.tgz",
+  "openssl rand -hex 16",
+  "openssl s_client -connect example.com:443 -servername example.com",
+  "docker run --rm -p 8080:80 nginx",
+  "docker compose up -d",
+  "git log --oneline --graph --decorate --all",
+  "git rebase -i HEAD~3",
+  "kubectl get pods -A",
+  "kubectl logs -f deploy/web",
+  "ps aux | grep -i postgres | grep -v grep",
+  "iptables -S",
+  "ip route get 1.1.1.1",
+  "nmap -sV -p 1-1024 127.0.0.1",
+  "openssl dgst -sha256 file.bin",
+  "head -c 32 /dev/urandom | xxd -p",
+  "chmod -R 750 /var/www",
+  "chown -R www-data:www-data /var/www",
+  "printf '%s\\n' foo bar | tee out.txt",
+  "jq '.items[] | .name' data.json"
+];
+
+// Interne staat
+let current = '';
+let correct = 0;
+let totalTyped = 0;
+let startTime = null;
+let timer = null;
+let timeLeft = 60;
+
+// Utility: kies woord o.b.v. tijdssegment
+function selectTierWord() {
+  const elapsed = startTime ? (Date.now() - startTime) / 1000 : 0;
+  // 0–20s easy, 20–40s medium, 40–60s hard
+  if (elapsed < 20) return pick(EASY);
+  if (elapsed < 40) return pick(MEDIUM);
+  return pick(HARD);
+}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// HTML render met prefix highlighting
+function renderWord(target, typed) {
+  let prefixLen = 0;
+  for (let i = 0; i < Math.min(typed.length, target.length); i++) {
+    if (typed[i] === target[i]) prefixLen++;
+    else break;
+  }
+  const ok = target.slice(0, prefixLen);
+  const rest = target.slice(prefixLen);
+  display.innerHTML = `<span class="ok">${escapeHtml(ok)}</span>${escapeHtml(rest)}`;
+}
+
+// Escaping
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function nextWord(){
+  current = selectTierWord();
+  renderWord(current, '');
+  input.value = '';
+}
+
+function updateStats(){
+  const elapsedMin = Math.max(1/60, ((Date.now()-startTime)/1000)/60);
+  const wpm = Math.round((correct/5) / elapsedMin);
+  const acc = totalTyped === 0 ? 100 : Math.round((correct/totalTyped)*100);
+  wpmEl.textContent = `WPM: ${wpm}`;
+  accEl.textContent = `Acc: ${acc}%`;
+  timeEl.textContent = `Tijd: ${timeLeft}s`;
+}
+
+function tick(){
+  timeLeft--;
+  if(timeLeft <= 0){
+    endGame();
+    return;
+  }
+  updateStats();
+}
+
+function startGame(){
+  correct = 0; totalTyped = 0; timeLeft = 60;
+  startTime = Date.now();
+  input.disabled = false;
+  input.focus();
+  nextWord();
+  updateStats();
+  if(timer) clearInterval(timer);
+  timer = setInterval(tick, 1000);
+}
+
+function endGame(){
+  clearInterval(timer);
+  input.disabled = true;
+  const elapsedMin = Math.max(1/60, ((Date.now()-startTime)/1000)/60);
+  const wpm = Math.round((correct/5) / elapsedMin);
+  const acc = totalTyped === 0 ? 100 : Math.round((correct/totalTyped)*100);
+  display.textContent = `Einde, score WPM: ${wpm}, Acc: ${acc}%`;
+}
+
+function resetGame(){
+  if(timer) clearInterval(timer);
+  input.disabled = true;
+  display.textContent = 'klaar? druk start';
+  wpmEl.textContent = 'WPM: 0';
+  accEl.textContent = 'Acc: 100%';
+  timeEl.textContent = 'Tijd: 60s';
+  input.value = '';
+  capsEl.classList.add('hidden');
+}
+
+// Caps Lock detectie
+function setCapsWarning(on) {
+  if (on) capsEl.classList.remove('hidden');
+  else capsEl.classList.add('hidden');
+}
+
+// Event handlers
+input.addEventListener('input', (e) => {
+  const val = e.target.value;
+  totalTyped += 1; // telt toetsaanslag, inclusief spaties
+  // Highlight live
+  renderWord(current, val);
+
+  // Eenvoudige foutindicatie via CSS klas op input
+  if (!current.startsWith(val)) {
+    input.classList.add('err');
+  } else {
+    input.classList.remove('err');
   }
 
-  function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, (char) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[char]);
-  }
-
-  function announce(message) {
-    liveRegion.textContent = '';
-    window.setTimeout(() => {
-      liveRegion.textContent = message;
-    }, 30);
-  }
-
-  function renderWord(typed = '') {
-    if (!state.currentWord) {
-      displayEl.innerHTML = '&nbsp;';
-      return;
-    }
-
-    const word = state.currentWord;
-    let prefixLength = 0;
-
-    while (prefixLength < typed.length && prefixLength < word.length && typed[prefixLength] === word[prefixLength]) {
-      prefixLength += 1;
-    }
-
-    const mistakePresent = typed.length > prefixLength;
-    const nextChar = word[prefixLength] ?? '';
-    const restStart = mistakePresent && nextChar ? prefixLength + 1 : prefixLength;
-
-    let html = '';
-
-    if (prefixLength) {
-      html += `<span class="ok">${escapeHTML(word.slice(0, prefixLength))}</span>`;
-    }
-
-    if (mistakePresent && nextChar) {
-      html += `<span class="err">${escapeHTML(nextChar)}</span>`;
-    } else if (mistakePresent && !nextChar) {
-      html += '<span class="err">_</span>';
-    }
-
-    if (word.length > restStart) {
-      html += escapeHTML(word.slice(restStart));
-    }
-
-    displayEl.innerHTML = html || escapeHTML(word);
-  }
-
-  function computeElapsed() {
-    if (!state.startedAt) {
-      return state.elapsed;
-    }
-    return state.elapsed + (performance.now() - state.startedAt) / 1000;
-  }
-
-  function updateStats() {
-    const elapsedSeconds = computeElapsed();
-    const minutes = elapsedSeconds > 0 ? elapsedSeconds / 60 : 0;
-    const rawWpm = minutes > 0 ? (state.correctChars / 5) / minutes : 0;
-    const wpm = Number.isFinite(rawWpm) ? Math.round(rawWpm) : 0;
-    const accuracy = state.totalTyped > 0 ? Math.round((state.correctChars / state.totalTyped) * 100) : 100;
-
-    wpmEl.textContent = String(Math.max(0, wpm));
-    accEl.textContent = `${Math.max(0, Math.min(accuracy, 100))}%`;
-  }
-
-  function updateTime() {
-    timeEl.textContent = `${Math.max(0, state.remaining)}s`;
-  }
-
-  function startTimer() {
-    if (state.timerId) {
-      return;
-    }
-
-    if (!state.startedAt) {
-      state.startedAt = performance.now();
-    }
-
-    const step = () => {
-      if (!state.started) {
-        return;
-      }
-
-      const elapsedSeconds = computeElapsed();
-      const newRemaining = Math.max(DURATION - Math.floor(elapsedSeconds), 0);
-
-      if (newRemaining !== state.remaining) {
-        state.remaining = newRemaining;
-        updateTime();
-      }
-
-      updateStats();
-
-      if (newRemaining <= 0) {
-        endGame();
-        return;
-      }
-
-      state.timerId = window.requestAnimationFrame(step);
-    };
-
-    state.timerId = window.requestAnimationFrame(step);
-  }
-
-  function stopTimer(persistElapsed = true) {
-    if (state.timerId) {
-      window.cancelAnimationFrame(state.timerId);
-      state.timerId = null;
-    }
-
-    if (persistElapsed && state.startedAt) {
-      state.elapsed += (performance.now() - state.startedAt) / 1000;
-    }
-
-    state.startedAt = null;
-  }
-
-  function pauseTimer() {
-    if (!state.started) {
-      return;
-    }
-    stopTimer(true);
-  }
-
-  function resumeTimer() {
-    if (!state.started || state.timerId) {
-      return;
-    }
-    startTimer();
-  }
-
-  function refreshQueue() {
-    state.queue = shuffle(state.words);
-  }
-
-  function nextWord() {
-    if (!state.words.length) {
-      return;
-    }
-    if (state.queue.length === 0) {
-      refreshQueue();
-    }
-    state.currentWord = state.queue.shift();
-    renderWord('');
-    announce(`Nieuw woord: ${state.currentWord}`);
-  }
-
-  function startGame() {
-    if (!state.words.length || state.started) {
-      return;
-    }
-
-    state.started = true;
-    state.finished = false;
-    state.elapsed = 0;
-    state.remaining = DURATION;
-    state.totalTyped = 0;
-    state.correctChars = 0;
-    state.currentWord = '';
-    state.lastInputLength = 0;
-    refreshQueue();
-
-    inputEl.value = '';
-    inputEl.disabled = false;
-    inputEl.classList.remove('input-error');
-    inputEl.focus();
-
-    startBtn.disabled = true;
-    resetBtn.disabled = false;
-
-    updateTime();
-    updateStats();
+  // Bij volledige match
+  if (val === current) {
+    correct += current.length;
     nextWord();
-    startTimer();
   }
+  updateStats();
+});
 
-  function endGame() {
-    if (!state.started) {
-      return;
-    }
-
-    stopTimer(true);
-    state.started = false;
-    state.finished = true;
-    state.remaining = 0;
-    updateTime();
-    updateStats();
-
-    inputEl.disabled = true;
-    inputEl.blur();
-    inputEl.classList.remove('input-error');
-
-    startBtn.disabled = false;
-    announce(`Tijd is op. ${wpmEl.textContent} woorden per minuut, ${accEl.textContent} nauwkeurigheid.`);
-  }
-
-  function resetGame() {
-    stopTimer(false);
-    state.started = false;
-    state.finished = false;
-    state.elapsed = 0;
-    state.remaining = DURATION;
-    state.totalTyped = 0;
-    state.correctChars = 0;
-    state.currentWord = '';
-    state.queue = [];
-    state.lastInputLength = 0;
-
-    inputEl.value = '';
-    inputEl.disabled = true;
-    inputEl.classList.remove('input-error');
-
-    startBtn.disabled = false;
-    resetBtn.disabled = true;
-
-    displayEl.innerHTML = '&nbsp;';
-    updateTime();
-    updateStats();
-    announce('Game gereset. Druk op start om te spelen.');
-  }
-
-  function handleInput(event) {
-    if (!state.started) {
-      event.target.value = '';
-      return;
-    }
-
-    const raw = event.target.value;
-    const value = raw.replace(/^\s+/, '');
-    if (value !== raw) {
-      event.target.value = value;
-    }
-
-    const diff = Math.max(value.length - state.lastInputLength, 0);
-    if (diff > 0) {
-      state.totalTyped += diff;
-    }
-    state.lastInputLength = value.length;
-
-    const word = state.currentWord;
-    const typed = value.replace(/\s+$/, '');
-    const isCorrectPrefix = word.startsWith(typed);
-    inputEl.classList.toggle('input-error', value.length > 0 && !isCorrectPrefix);
-
-    renderWord(typed);
-    updateStats();
-
-    const completed = typed === word && value.length >= word.length;
-
-    if (completed) {
-      state.correctChars += word.length;
-      state.lastInputLength = 0;
-      event.target.value = '';
-      inputEl.classList.remove('input-error');
-      nextWord();
-    }
-  }
-
-  function handleKeydown(event) {
-    if (event.key === 'Enter' && state.finished) {
-      event.preventDefault();
-      startGame();
-    }
-  }
-
-  async function loadWords() {
-    try {
-      const res = await fetch('data/words.txt', { cache: 'no-store' });
-      if (!res.ok) {
-        throw new Error('Kan woordenlijst niet laden');
-      }
-      const text = await res.text();
-      const list = text
-        .split(/\r?\n/)
-        .map((word) => word.trim())
-        .filter(Boolean);
-      if (!list.length) {
-        throw new Error('Woordenlijst leeg');
-      }
-      state.words = Array.from(new Set(list));
-    } catch (error) {
-      state.words = fallbackWords;
-    }
-  }
-
-  startBtn.addEventListener('click', () => {
-    if (!state.started) {
-      startGame();
-    }
+// Caps Lock bij key events en focus
+['keydown','keyup'].forEach(evt => {
+  input.addEventListener(evt, (e) => {
+    // getModifierState is case-insensitive voor letters en werkt ook bij symbolen
+    const on = e.getModifierState && e.getModifierState('CapsLock');
+    setCapsWarning(on);
   });
+});
+input.addEventListener('focus', () => setCapsWarning(false));
+input.addEventListener('blur', () => setCapsWarning(false));
 
-  resetBtn.addEventListener('click', () => {
-    resetGame();
-  });
+startBtn.addEventListener('click', startGame);
 
-  inputEl.addEventListener('input', handleInput);
-  document.addEventListener('keydown', handleKeydown);
+resetBtn.addEventListener('click', resetGame);
 
-  window.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      pauseTimer();
-    } else if (document.visibilityState === 'visible') {
-      resumeTimer();
-    }
-  });
+// Enter herstart bij game-over
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && input.disabled) startGame();
+});
 
-  loadWords().then(() => {
-    if (!state.words.length) {
-      state.words = fallbackWords;
-    }
-    resetGame();
-  });
-})();
+// Init
+resetGame();

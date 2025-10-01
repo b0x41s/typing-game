@@ -264,3 +264,26 @@ h1 {
     scroll-behavior: auto !important;
   }
 }
+
+/* Monospace voor commando-weergave en input */
+.display, input#input { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+/* Prefix highlighting in het doelwoord */
+.ok { color: var(--accent); }
+.err { text-decoration: underline; text-decoration-color: #ff5454; text-decoration-thickness: 2px; }
+input#input.err {
+  border-color: rgba(255, 84, 84, 0.85);
+  box-shadow: 0 0 0 3px rgba(255, 84, 84, 0.35);
+}
+
+/* Caps Lock banner */
+.caps {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 196, 0, 0.25);
+  background: rgba(255, 196, 0, 0.08);
+  color: #ffd666;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.hidden { display: none; }
