@@ -182,6 +182,53 @@ h1 {
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+}
+
+.start-hint {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.start-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(61, 250, 114, 0.4);
+  background: rgba(61, 250, 114, 0.08);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.keyboard span[data-key="f"],
+.keyboard span[data-key="j"] {
+  position: relative;
+}
+
+.keyboard span[data-key="f"]::after,
+.keyboard span[data-key="j"]::after {
+  content: "•";
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: var(--accent);
+  opacity: 0.85;
 }
 
 .keyboard {

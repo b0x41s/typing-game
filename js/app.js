@@ -5,8 +5,8 @@
   const wpmEl = document.getElementById('wpm');
   const accEl = document.getElementById('acc');
   const timeEl = document.getElementById('time');
-  const startBtn = document.getElementById('start');
   const resetBtn = document.getElementById('reset');
+  const startHint = document.getElementById('start-hint');
   const liveRegion = document.getElementById('live-region');
   const capsWarning = document.getElementById('caps-warning');
   const keyboardKeys = Array.from(document.querySelectorAll('.keyboard span'));
@@ -69,6 +69,7 @@
   };
 
   const activeKeyEls = new Set();
+  const startComboKeys = new Set();
 
   function setCapsState(active) {
     capsActive = Boolean(active);
@@ -136,6 +137,28 @@
     window.setTimeout(() => {
       liveRegion.textContent = message;
     }, 30);
+  }
+
+  function updateStartHint(mode) {
+    if (!startHint) {
+      return;
+    }
+
+    if (mode === 'running') {
+      startHint.textContent = 'Je bent live — blijf typen!';
+      return;
+    }
+
+    if (mode === 'finished') {
+      startHint.innerHTML = 'Nog een ronde? Druk opnieuw op <kbd>F</kbd> en <kbd>J</kbd>.';
+      return;
+    }
+
+    startHint.innerHTML = 'Start door tegelijk op <kbd>F</kbd> en <kbd>J</kbd> te drukken.';
+  }
+
+  function clearStartCombo() {
+    startComboKeys.clear();
   }
 
   function renderWord(typed = '') {
@@ -294,13 +317,14 @@
     inputEl.classList.remove('input-error');
     inputEl.focus();
 
-    startBtn.disabled = true;
     resetBtn.disabled = false;
 
     updateTime();
     updateStats();
     nextWord();
     startTimer();
+    updateStartHint('running');
+    clearStartCombo();
   }
 
   function endGame() {
@@ -319,9 +343,10 @@
     inputEl.blur();
     inputEl.classList.remove('input-error');
 
-    startBtn.disabled = false;
     clearKeyHighlights();
-    announce(`Tijd is op. ${wpmEl.textContent} woorden per minuut, ${accEl.textContent} nauwkeurigheid.`);
+    updateStartHint('finished');
+    clearStartCombo();
+    announce(`Tijd is op. ${wpmEl.textContent} woorden per minuut, ${accEl.textContent} nauwkeurigheid. Druk opnieuw op F en J voor een rematch.`);
   }
 
   function resetGame() {
@@ -343,13 +368,14 @@
     inputEl.disabled = true;
     inputEl.classList.remove('input-error');
 
-    startBtn.disabled = false;
     resetBtn.disabled = true;
 
     displayEl.innerHTML = '&nbsp;';
     updateTime();
     updateStats();
-    announce('Game gereset. Druk op start om te spelen.');
+    updateStartHint('ready');
+    clearStartCombo();
+    announce('Game gereset. Druk tegelijk op F en J om te starten.');
   }
 
   function handleInput(event) {
@@ -395,6 +421,15 @@
       setCapsState(event.getModifierState('CapsLock'));
     }
 
+    const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+    if (key === 'f' || key === 'j') {
+      startComboKeys.add(key);
+      if (!state.started && startComboKeys.has('f') && startComboKeys.has('j')) {
+        event.preventDefault();
+        startGame();
+      }
+    }
+
     if (event.key === 'Enter' && state.finished) {
       event.preventDefault();
       startGame();
@@ -405,6 +440,11 @@
     setKeyHighlight(event, false);
     if (typeof event.getModifierState === 'function') {
       setCapsState(event.getModifierState('CapsLock'));
+    }
+
+    const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+    if (key === 'f' || key === 'j') {
+      startComboKeys.delete(key);
     }
   }
 
@@ -427,12 +467,6 @@
       state.words = fallbackWords;
     }
   }
-
-  startBtn.addEventListener('click', () => {
-    if (!state.started) {
-      startGame();
-    }
-  });
 
   resetBtn.addEventListener('click', () => {
     resetGame();
