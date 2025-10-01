@@ -1,5 +1,7 @@
 # HackType
 
+https://b0x41s.github.io/typing-game
+
 HackType is een statische 60-seconden typchallenge met een donkere Tex-Tribe uitstraling. Train je 10-vinger blindtypen en houd WPM en accuracy strak in de gaten zonder afhankelijkheden of build-stap.
 
 ## Features
