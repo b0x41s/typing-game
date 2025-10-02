@@ -1,13 +1,13 @@
 {
   "packId": "beginner",
   "title": "Recon Basics",
-  "summary": "Low-friction terminal moves for warming up ten-finger typing.",
+  "summary": "One-word terminal fundamentals for easing into ten-finger typing.",
   "difficulty": "beginner",
   "commands": [
     {
       "id": "pwd",
       "command": "pwd",
-      "description": "Check your current directory before running other commands.",
+      "description": "Check your current working directory before doing anything else.",
       "mock_output": "/home/analyst\n",
       "accepted_variants": ["pwd"],
       "tags": ["navigation", "basics"]
@@ -15,31 +15,15 @@
     {
       "id": "ls",
       "command": "ls",
-      "description": "List the files in the current folder.",
+      "description": "List the visible files in the current folder.",
       "mock_output": "README.md\nnotes\nscripts\n",
       "accepted_variants": ["ls"],
       "tags": ["navigation", "basics"]
     },
     {
-      "id": "ls-l",
-      "command": "ls -l",
-      "description": "See file sizes and permissions at a glance.",
-      "mock_output": "total 12\n-rw-r--r-- 1 analyst analyst  512 Jan  9 README.md\ndrwxr-xr-x 2 analyst analyst 4096 Jan  9 notes\ndrwxr-xr-x 3 analyst analyst 4096 Jan  9 scripts\n",
-      "accepted_variants": ["ls -l"],
-      "tags": ["navigation", "permissions"]
-    },
-    {
-      "id": "ls-a",
-      "command": "ls -a",
-      "description": "Include hidden files that start with a dot.",
-      "mock_output": ".git\n.bashrc\nREADME.md\nnotes\nscripts\n",
-      "accepted_variants": ["ls -a"],
-      "tags": ["navigation", "visibility"]
-    },
-    {
       "id": "clear",
       "command": "clear",
-      "description": "Clean the terminal view without affecting history.",
+      "description": "Wipe the terminal view without touching command history.",
       "mock_output": "",
       "accepted_variants": ["clear"],
       "tags": ["interface", "basics"]
@@ -55,250 +39,210 @@
     {
       "id": "id",
       "command": "id",
-      "description": "Show your user and group identifiers.",
+      "description": "Show user and group identifiers at a glance.",
       "mock_output": "uid=1000(analyst) gid=1000(analyst) groups=1000(analyst),27(sudo)\n",
       "accepted_variants": ["id"],
-      "tags": ["identity", "basics"]
+      "tags": ["identity", "context"]
     },
     {
       "id": "hostname",
       "command": "hostname",
-      "description": "Confirm the machine you're working on.",
+      "description": "Confirm which machine you are operating on.",
       "mock_output": "hacktype-lab\n",
       "accepted_variants": ["hostname"],
       "tags": ["context", "basics"]
     },
     {
-      "id": "uname",
-      "command": "uname -a",
-      "description": "Check kernel and architecture details in one line.",
-      "mock_output": "Linux hacktype-lab 5.15.0-88-generic #98-Ubuntu SMP x86_64 GNU/Linux\n",
-      "accepted_variants": ["uname -a"],
-      "tags": ["context", "system"]
-    },
-    {
       "id": "date",
       "command": "date",
-      "description": "Print the current date and time for your notes.",
+      "description": "Print the current date and time for quick notes.",
       "mock_output": "Tue Jan 09 09:12:07 UTC 2024\n",
       "accepted_variants": ["date"],
       "tags": ["time", "basics"]
     },
     {
       "id": "cal",
-      "command": "cal 2024",
-      "description": "View the entire calendar for planning.",
-      "mock_output": "      2024\nSu Mo Tu We Th Fr Sa\n     1  2  3  4  5  6\n 7  8  9 10 11 12 13\n...\n",
-      "accepted_variants": ["cal 2024"],
+      "command": "cal",
+      "description": "Display the current month calendar.",
+      "mock_output": "    January 2024\nSu Mo Tu We Th Fr Sa\n    1  2  3  4  5  6\n 7  8  9 10 11 12 13\n",
+      "accepted_variants": ["cal"],
       "tags": ["time", "reference"]
     },
     {
       "id": "uptime",
       "command": "uptime",
-      "description": "See how long the system has been running.",
+      "description": "See how long the host has been running.",
       "mock_output": " 09:12:12 up 1 day,  2:41,  1 user,  load average: 0.21, 0.18, 0.11\n",
       "accepted_variants": ["uptime"],
       "tags": ["system", "monitoring"]
     },
     {
       "id": "free",
-      "command": "free -h",
-      "description": "Check memory usage with human-readable units.",
+      "command": "free",
+      "description": "Check memory usage in one command.",
       "mock_output": "              total        used        free      shared  buff/cache   available\nMem:           15Gi       3.2Gi       8.5Gi       256Mi       3.5Gi        11Gi\nSwap:          4.0Gi        0Gi       4.0Gi\n",
-      "accepted_variants": ["free -h"],
+      "accepted_variants": ["free"],
       "tags": ["system", "monitoring"]
     },
     {
       "id": "df",
-      "command": "df -h",
-      "description": "Review disk usage quickly.",
-      "mock_output": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        60G   18G   40G  31% /\n",
-      "accepted_variants": ["df -h"],
+      "command": "df",
+      "description": "Review disk usage across mounted filesystems.",
+      "mock_output": "Filesystem     1K-blocks    Used Available Use% Mounted on\n/dev/sda1        61603836 18927624 39591924  33% /\n",
+      "accepted_variants": ["df"],
       "tags": ["system", "storage"]
     },
     {
       "id": "env",
       "command": "env",
-      "description": "Dump all environment variables.",
+      "description": "Dump the current environment variables.",
       "mock_output": "SHELL=/bin/bash\nUSER=analyst\nLANG=en_US.UTF-8\n",
       "accepted_variants": ["env"],
       "tags": ["context", "basics"]
     },
     {
-      "id": "printenv",
-      "command": "printenv PATH",
-      "description": "Check which directories are searched for executables.",
-      "mock_output": "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n",
-      "accepted_variants": ["printenv PATH"],
-      "tags": ["context", "basics"]
-    },
-    {
       "id": "history",
       "command": "history",
-      "description": "Review recent commands for quick reuse.",
+      "description": "Review the recent commands you executed.",
       "mock_output": "  97  ls\n  98  pwd\n  99  history\n",
       "accepted_variants": ["history"],
       "tags": ["workflow", "basics"]
     },
     {
-      "id": "touch",
-      "command": "touch notes.txt",
-      "description": "Create or update the timestamp on a note file.",
+      "id": "uname",
+      "command": "uname",
+      "description": "Print system information in one word.",
+      "mock_output": "Linux\n",
+      "accepted_variants": ["uname"],
+      "tags": ["context", "system"]
+    },
+    {
+      "id": "top",
+      "command": "top",
+      "description": "Launch the process viewer for a quick load check.",
+      "mock_output": "top - 09:12:40 up 1 day,  2 users,  load average: 0.22, 0.19, 0.11\nTasks: 183 total,   1 running, 182 sleeping\n",
+      "accepted_variants": ["top"],
+      "tags": ["system", "monitoring"]
+    },
+    {
+      "id": "htop",
+      "command": "htop",
+      "description": "Open the ncurses process manager (if installed).",
       "mock_output": "",
-      "accepted_variants": ["touch notes.txt"],
-      "tags": ["files", "basics"]
+      "accepted_variants": ["htop"],
+      "tags": ["system", "monitoring"]
     },
     {
-      "id": "mkdir",
-      "command": "mkdir logs",
-      "description": "Make a new directory for files you collect.",
-      "mock_output": "",
-      "accepted_variants": ["mkdir logs"],
-      "tags": ["files", "basics"]
+      "id": "ps",
+      "command": "ps",
+      "description": "Show running processes owned by the current shell.",
+      "mock_output": "  PID TTY          TIME CMD\n 1024 pts/0    00:00:00 bash\n 1055 pts/0    00:00:00 ps\n",
+      "accepted_variants": ["ps"],
+      "tags": ["system", "monitoring"]
     },
     {
-      "id": "cp",
-      "command": "cp README.md README.backup",
-      "description": "Copy a file before editing.",
-      "mock_output": "",
-      "accepted_variants": ["cp README.md README.backup"],
-      "tags": ["files", "safety"]
+      "id": "w",
+      "command": "w",
+      "description": "See who is logged in and what they are doing.",
+      "mock_output": " 09:12:58 up 1 day,  2 users,  load average: 0.21, 0.19, 0.11\nUSER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT\nanalyst  pts/0    10.0.0.11        08:55    1:02   0.08s  0.08s w\n",
+      "accepted_variants": ["w"],
+      "tags": ["identity", "monitoring"]
     },
     {
-      "id": "mv",
-      "command": "mv README.backup docs/readme.bak",
-      "description": "Move or rename a file to a new location.",
-      "mock_output": "",
-      "accepted_variants": ["mv README.backup docs/readme.bak"],
-      "tags": ["files", "basics"]
+      "id": "who",
+      "command": "who",
+      "description": "List logged-in users.",
+      "mock_output": "analyst  pts/0        Jan  9 08:55 (10.0.0.11)\n",
+      "accepted_variants": ["who"],
+      "tags": ["identity", "basics"]
     },
     {
-      "id": "cat",
-      "command": "cat README.md",
-      "description": "Display the contents of a file.",
-      "mock_output": "HackType — type fast, stay sharp.\n",
-      "accepted_variants": ["cat README.md"],
-      "tags": ["files", "basics"]
+      "id": "users",
+      "command": "users",
+      "description": "Print the users currently logged into the host.",
+      "mock_output": "analyst\n",
+      "accepted_variants": ["users"],
+      "tags": ["identity", "basics"]
     },
     {
-      "id": "head",
-      "command": "head -n 5 README.md",
-      "description": "Preview the first lines of a file.",
-      "mock_output": "HackType — type fast, stay sharp.\nIntroductie\n...\n",
-      "accepted_variants": ["head -n 5 README.md"],
-      "tags": ["files", "analysis"]
+      "id": "groups",
+      "command": "groups",
+      "description": "Show group memberships for the current user.",
+      "mock_output": "analyst : analyst sudo adm\n",
+      "accepted_variants": ["groups"],
+      "tags": ["identity", "context"]
     },
     {
-      "id": "tail",
-      "command": "tail -n 5 README.md",
-      "description": "Peek at the last lines for recent notes.",
-      "mock_output": "Credits\nLicense: MIT\n",
-      "accepted_variants": ["tail -n 5 README.md"],
-      "tags": ["files", "analysis"]
+      "id": "printenv",
+      "command": "printenv",
+      "description": "Print all environment variables via the POSIX tool.",
+      "mock_output": "HOME=/home/analyst\nPATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin\n",
+      "accepted_variants": ["printenv"],
+      "tags": ["context", "basics"]
     },
     {
-      "id": "wc",
-      "command": "wc -l README.md",
-      "description": "Count lines to estimate file length quickly.",
-      "mock_output": "42 README.md\n",
-      "accepted_variants": ["wc -l README.md"],
-      "tags": ["files", "analysis"]
+      "id": "set",
+      "command": "set",
+      "description": "Display shell variables and functions.",
+      "mock_output": "BASH=/bin/bash\nCOLUMNS=120\n...\n",
+      "accepted_variants": ["set"],
+      "tags": ["workflow", "shell"]
     },
     {
-      "id": "grep",
-      "command": "grep HackType README.md",
-      "description": "Search for a keyword inside a file.",
-      "mock_output": "HackType — type fast, stay sharp.\n",
-      "accepted_variants": ["grep HackType README.md"],
-      "tags": ["search", "analysis"]
+      "id": "alias",
+      "command": "alias",
+      "description": "List shell aliases currently defined.",
+      "mock_output": "alias ll='ls -alF'\nalias la='ls -A'\n",
+      "accepted_variants": ["alias"],
+      "tags": ["workflow", "shell"]
     },
     {
-      "id": "find",
-      "command": "find . -maxdepth 1",
-      "description": "List files in the current folder without recursing deeply.",
-      "mock_output": "./\n./README.md\n./notes\n./scripts\n",
-      "accepted_variants": ["find . -maxdepth 1"],
-      "tags": ["search", "navigation"]
+      "id": "which",
+      "command": "which",
+      "description": "Locate the executable used for a command name.",
+      "mock_output": "/usr/bin/which\n",
+      "accepted_variants": ["which"],
+      "tags": ["workflow", "shell"]
     },
     {
-      "id": "locate",
-      "command": "locate bashrc",
-      "description": "Query the file database for matching names.",
-      "mock_output": "/home/analyst/.bashrc\n/etc/skel/.bashrc\n",
-      "accepted_variants": ["locate bashrc"],
-      "tags": ["search", "reference"]
+      "id": "type",
+      "command": "type",
+      "description": "Determine how the shell resolves a command name.",
+      "mock_output": "type is a shell builtin\n",
+      "accepted_variants": ["type"],
+      "tags": ["workflow", "shell"]
     },
     {
-      "id": "echo",
-      "command": "echo \"HackType ready\"",
-      "description": "Print a quick status message or note.",
-      "mock_output": "HackType ready\n",
-      "accepted_variants": ["echo \"HackType ready\""],
+      "id": "yes",
+      "command": "yes",
+      "description": "Generate a continuous stream of y characters until stopped.",
+      "mock_output": "y\ny\ny\n",
+      "accepted_variants": ["yes"],
       "tags": ["output", "basics"]
     },
     {
-      "id": "sleep",
-      "command": "sleep 1",
-      "description": "Pause execution briefly.",
+      "id": "reset",
+      "command": "reset",
+      "description": "Reinitialize the terminal to a clean state.",
       "mock_output": "",
-      "accepted_variants": ["sleep 1"],
-      "tags": ["timing", "basics"]
+      "accepted_variants": ["reset"],
+      "tags": ["interface", "basics"]
     },
     {
-      "id": "man",
-      "command": "man echo",
-      "description": "Open the manual page for a command.",
-      "mock_output": "ECHO(1) User Commands ECHO(1)\nNAME\n       echo - display a line of text\n",
-      "accepted_variants": ["man echo"],
-      "tags": ["reference", "learning"]
-    },
-    {
-      "id": "less",
-      "command": "less README.md",
-      "description": "View a file interactively with paging controls.",
-      "mock_output": "HackType — type fast, stay sharp.\nPress q to quit.\n",
-      "accepted_variants": ["less README.md"],
-      "tags": ["files", "analysis"]
-    },
-    {
-      "id": "nano",
-      "command": "nano notes/todo.txt",
-      "description": "Open a file in the nano editor for quick edits.",
+      "id": "jobs",
+      "command": "jobs",
+      "description": "List background jobs for the current shell.",
       "mock_output": "",
-      "accepted_variants": ["nano notes/todo.txt"],
-      "tags": ["editing", "basics"]
+      "accepted_variants": ["jobs"],
+      "tags": ["workflow", "shell"]
     },
     {
-      "id": "ssh",
-      "command": "ssh analyst@lab-vmx",
-      "description": "Connect to another machine over SSH.",
-      "mock_output": "analyst@lab-vmx's password: \n",
-      "accepted_variants": ["ssh analyst@lab-vmx"],
-      "tags": ["network", "remote"]
-    },
-    {
-      "id": "scp",
-      "command": "scp README.md analyst@lab-vmx:/tmp/README.md",
-      "description": "Copy a file to a remote host for review.",
-      "mock_output": "README.md                                   100%  512   512.0KB/s   00:00\n",
-      "accepted_variants": ["scp README.md analyst@lab-vmx:/tmp/README.md"],
-      "tags": ["network", "files"]
-    },
-    {
-      "id": "curl",
-      "command": "curl -I https://example.com",
-      "description": "Check HTTP headers quickly.",
-      "mock_output": "HTTP/2 200 \nserver: nginx\ncontent-type: text/html\n",
-      "accepted_variants": ["curl -I https://example.com"],
-      "tags": ["network", "basics"]
-    },
-    {
-      "id": "ping",
-      "command": "ping -c 1 1.1.1.1",
-      "description": "Verify basic network reachability with one ping.",
-      "mock_output": "1 packets transmitted, 1 received, 0% packet loss\n",
-      "accepted_variants": ["ping -c 1 1.1.1.1"],
-      "tags": ["network", "monitoring"]
+      "id": "exit",
+      "command": "exit",
+      "description": "Close the current shell session.",
+      "mock_output": "",
+      "accepted_variants": ["exit"],
+      "tags": ["workflow", "basics"]
     }
   ]
 }
