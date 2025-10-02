@@ -1,0 +1,24 @@
+{
+  "correct": {
+    "masterGain": 0.28,
+    "steps": [
+      { "type": "tone", "frequency": 880, "duration": 0.1, "wave": "triangle", "gain": 1 },
+      { "type": "tone", "frequency": 1175, "duration": 0.08, "wave": "triangle", "gain": 0.85, "delayAfter": 0.01 }
+    ]
+  },
+  "error": {
+    "masterGain": 0.3,
+    "steps": [
+      { "type": "tone", "frequency": 220, "duration": 0.14, "wave": "sawtooth", "gain": 0.9 },
+      { "type": "tone", "frequency": 180, "duration": 0.12, "wave": "sawtooth", "gain": 0.75 }
+    ]
+  },
+  "level_up": {
+    "masterGain": 0.24,
+    "steps": [
+      { "type": "tone", "frequency": 523.25, "duration": 0.12, "wave": "sine", "gain": 0.9 },
+      { "type": "tone", "frequency": 659.25, "duration": 0.12, "wave": "sine", "gain": 0.85 },
+      { "type": "tone", "frequency": 784, "duration": 0.16, "wave": "sine", "gain": 0.8 }
+    ]
+  }
+}

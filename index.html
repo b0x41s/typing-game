@@ -8,127 +8,120 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main class="shell" aria-labelledby="page-title">
+  <main id="app" class="shell" aria-labelledby="page-title">
     <header class="top">
       <h1 id="page-title">HackType</h1>
       <p class="tagline">60 seconden pure focus zoals in de Tex-Tribe war room.</p>
     </header>
 
-    <section class="panel" aria-live="off">
-      <div class="display" id="display" aria-live="polite"></div>
-      <label for="input" class="sr-only">Typ het weergegeven woord</label>
-      <input id="input" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="stats caps-warning" disabled>
-      <p id="caps-warning" class="caps" role="alert" aria-live="assertive" hidden>Caps Lock staat aan.</p>
-
-      <div class="keyboard" aria-hidden="true">
-        <div class="row">
-          <span data-key="`" data-code="Backquote">~</span>
-          <span data-key="1" data-code="Digit1">1</span>
-          <span data-key="2" data-code="Digit2">2</span>
-          <span data-key="3" data-code="Digit3">3</span>
-          <span data-key="4" data-code="Digit4">4</span>
-          <span data-key="5" data-code="Digit5">5</span>
-          <span data-key="6" data-code="Digit6">6</span>
-          <span data-key="7" data-code="Digit7">7</span>
-          <span data-key="8" data-code="Digit8">8</span>
-          <span data-key="9" data-code="Digit9">9</span>
-          <span data-key="0" data-code="Digit0">0</span>
-          <span data-key="-" data-code="Minus">-</span>
-          <span data-key="=" data-code="Equal">=</span>
-          <span class="key-wide" data-key="Backspace" data-code="Backspace">Backspace</span>
-        </div>
-        <div class="row">
-          <span class="key-medium" data-key="Tab" data-code="Tab">Tab</span>
-          <span data-key="q" data-code="KeyQ">Q</span>
-          <span data-key="w" data-code="KeyW">W</span>
-          <span data-key="e" data-code="KeyE">E</span>
-          <span data-key="r" data-code="KeyR">R</span>
-          <span data-key="t" data-code="KeyT">T</span>
-          <span data-key="y" data-code="KeyY">Y</span>
-          <span data-key="u" data-code="KeyU">U</span>
-          <span data-key="i" data-code="KeyI">I</span>
-          <span data-key="o" data-code="KeyO">O</span>
-          <span data-key="p" data-code="KeyP">P</span>
-          <span data-key="[" data-code="BracketLeft">[</span>
-          <span data-key="]" data-code="BracketRight">]</span>
-          <span data-key="\\" data-code="Backslash">\</span>
-        </div>
-        <div class="row">
-          <span class="key-large" data-key="CapsLock" data-code="CapsLock">Caps</span>
-          <span data-key="a" data-code="KeyA">A</span>
-          <span data-key="s" data-code="KeyS">S</span>
-          <span data-key="d" data-code="KeyD">D</span>
-          <span data-key="f" data-code="KeyF">F</span>
-          <span data-key="g" data-code="KeyG">G</span>
-          <span data-key="h" data-code="KeyH">H</span>
-          <span data-key="j" data-code="KeyJ">J</span>
-          <span data-key="k" data-code="KeyK">K</span>
-          <span data-key="l" data-code="KeyL">L</span>
-          <span data-key=";" data-code="Semicolon">;</span>
-          <span data-key="'" data-code="Quote">'</span>
-          <span class="key-large" data-key="Enter" data-code="Enter">Enter</span>
-        </div>
-        <div class="row">
-          <span class="key-extra" data-key="Shift" data-code="ShiftLeft">Shift</span>
-          <span data-key="z" data-code="KeyZ">Z</span>
-          <span data-key="x" data-code="KeyX">X</span>
-          <span data-key="c" data-code="KeyC">C</span>
-          <span data-key="v" data-code="KeyV">V</span>
-          <span data-key="b" data-code="KeyB">B</span>
-          <span data-key="n" data-code="KeyN">N</span>
-          <span data-key="m" data-code="KeyM">M</span>
-          <span data-key="," data-code="Comma">,</span>
-          <span data-key="." data-code="Period">.</span>
-          <span data-key="/" data-code="Slash">/</span>
-          <span class="key-extra" data-key="Shift" data-code="ShiftRight">Shift</span>
-        </div>
-        <div class="row">
-          <span class="key-medium" data-key="Control" data-code="ControlLeft">Ctrl</span>
-          <span class="key-medium" data-key="Meta" data-code="MetaLeft">Cmd</span>
-          <span class="key-medium" data-key="Alt" data-code="AltLeft">Alt</span>
-          <span class="key-space" data-key=" " data-code="Space">Space</span>
-          <span class="key-medium" data-key="AltGraph" data-code="AltRight">AltGr</span>
-          <span class="key-medium" data-key="ContextMenu" data-code="ContextMenu">Menu</span>
-          <span class="key-medium" data-key="Control" data-code="ControlRight">Ctrl</span>
-        </div>
+    <section data-screen="loading" class="screen" aria-live="polite">
+      <div class="panel">
+        <p class="status-line">Commando's laden…</p>
       </div>
+    </section>
 
-      <div class="stats" id="stats" role="status" aria-live="polite">
-        <div class="stat">
-          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#tachometer"></use></svg>
-          <span class="label">WPM</span>
-          <span id="wpm" class="value">0</span>
-        </div>
-        <div class="stat">
-          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#target"></use></svg>
-          <span class="label">Accuracy</span>
-          <span id="acc" class="value">100%</span>
-        </div>
-        <div class="stat">
-          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#timer"></use></svg>
-          <span class="label">Tijd</span>
-          <span id="time" class="value">60s</span>
-        </div>
+    <section data-screen="start" class="screen" hidden>
+      <div class="panel">
+        <h2 class="panel-title">Begin de run</h2>
+        <p class="pack-meta" id="pack-summary"></p>
+        <dl class="info-grid">
+          <div>
+            <dt>Pack</dt>
+            <dd id="pack-title">–</dd>
+          </div>
+          <div>
+            <dt>Doel</dt>
+            <dd>60s, zo veel mogelijk geldige commands</dd>
+          </div>
+          <div>
+            <dt>Highscore</dt>
+            <dd id="start-highscore">0</dd>
+          </div>
+        </dl>
+        <button type="button" class="btn btn-primary" data-action="start-run">Start run</button>
       </div>
+    </section>
 
-      <div class="controls">
-        <p id="start-hint" class="start-hint" role="status" aria-live="polite">
-          Start door tegelijk op <kbd>F</kbd> en <kbd>J</kbd> te drukken.
-        </p>
-        <button id="reset" type="button" class="btn" aria-label="Reset HackType" disabled>
-          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#refresh"></use></svg>
-          Reset
-        </button>
+    <section data-screen="play" class="screen" hidden>
+      <div class="panel game" role="application" aria-describedby="stats-bar caps-warning">
+        <header class="game-header">
+          <div class="stat-block" id="stats-bar" role="status" aria-live="polite">
+            <div>
+              <span class="label">Tijd</span>
+              <span class="value" id="stat-time">60s</span>
+            </div>
+            <div>
+              <span class="label">Commands</span>
+              <span class="value" id="stat-commands">0</span>
+            </div>
+            <div>
+              <span class="label">WPM</span>
+              <span class="value" id="stat-wpm">0</span>
+            </div>
+            <div>
+              <span class="label">Accuracy</span>
+              <span class="value" id="stat-acc">100%</span>
+            </div>
+          </div>
+          <p id="caps-warning" class="caps" role="alert" aria-live="assertive" hidden>Caps Lock staat aan.</p>
+        </header>
+
+        <article class="command-card" aria-live="polite">
+          <h3 class="command-title" id="command-title">–</h3>
+          <p class="command-description" id="command-description"></p>
+          <div class="command-tags" id="command-tags" aria-label="Tags"></div>
+          <pre class="command-output" id="command-output" aria-hidden="true"></pre>
+        </article>
+
+        <div class="input-region">
+          <label for="command-input" class="sr-only">Typ het commando</label>
+          <div class="command-display" id="command-display">&nbsp;</div>
+          <input id="command-input" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" disabled>
+        </div>
+
+        <footer class="game-footer" role="status" aria-live="polite">
+          <p class="hint" id="play-hint">Blijf typen tot het commando compleet is.</p>
+        </footer>
+      </div>
+    </section>
+
+    <section data-screen="results" class="screen" hidden>
+      <div class="panel">
+        <h2 class="panel-title">Run afgerond</h2>
+        <p class="score-line">Score: <span id="result-score">0</span></p>
+        <dl class="info-grid">
+          <div>
+            <dt>Commands</dt>
+            <dd id="result-commands">0</dd>
+          </div>
+          <div>
+            <dt>Accuracy</dt>
+            <dd id="result-acc">100%</dd>
+          </div>
+          <div>
+            <dt>Highscore</dt>
+            <dd id="result-highscore">0</dd>
+          </div>
+        </dl>
+        <div class="breakdown">
+          <p><span class="label">Basispunten:</span> <span id="result-base">0</span></p>
+          <p><span class="label">Tijdbonus:</span> <span id="result-bonus">0</span></p>
+          <p><span class="label">Foutpenalty:</span> <span id="result-penalty">0</span></p>
+        </div>
+        <div class="result-actions">
+          <button type="button" class="btn btn-primary" data-action="restart">Opnieuw spelen</button>
+          <button type="button" class="btn" data-action="back-to-start">Terug naar start</button>
+        </div>
       </div>
     </section>
 
     <footer class="foot">
-      <p>HackType by een Tex-Tribe geest — houd de terminal scherp.</p>
+      <p>HackType door Tex-Tribe geest — houd je terminal scherp.</p>
     </footer>
   </main>
 
   <div id="live-region" class="sr-only" role="status" aria-live="polite"></div>
 
-  <script src="js/app.js" defer></script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

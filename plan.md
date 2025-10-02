@@ -1,6 +1,6 @@
 # Project: Ten Fingers Hacker Typing Game
 
-**Goal:** A highly engaging, educational web game where players learn real, safe, hacker-themed command line skills by typing authentic commands with speed and accuracy. Hosted as a static site on GitHub Pages.
+**Goal:** A highly engaging, educational web game where players learn real, hacker-themed command line (OSCP) skills by typing authentic commands with speed and accuracy. Hosted as a static site on GitHub Pages.
 
 **North Star metric:** Correct hacker commands typed per player per week, and 7 day return rate.
 
@@ -23,7 +23,7 @@ Deliver a fully playable, offline friendly static site.
 **Scope**
 
 * Core loop: start, play, result, replay
-* One beginner command pack, 30 to 50 commands, safe and hacker themed
+* One beginner command pack, 30 to 50 commands, hacker themed like OSCP
 * Typing validation with character level accuracy, command level scoring
 * Local storage for high scores and basic progress
 * Basic audio cues for correct, error, level up
@@ -53,7 +53,7 @@ Add structured learning and replay value.
 
 ## Priority 3, Hacker themed command progression
 
-Teach realistic, safe commands used in security work. Avoid destructive actions.
+Teach realistic, hacker commands used in security work or like OSCP.
 
 **Beginner examples**
 
@@ -69,7 +69,7 @@ Teach realistic, safe commands used in security work. Avoid destructive actions.
 
 **Pack rules**
 
-1. Prefer information gathering and safe operations, no destructive flags
+1. Prefer information gathering.
 2. Provide accepted variants, for example `ls -l` and `ls -la`
 3. Provide short context on when and why a command is useful
 4. Each command has a deterministic mock output that feels real
@@ -154,15 +154,6 @@ Add optional social loops and long term retention.
 * Audio, Web Audio API or a small library
 * Storage, localStorage for progress and SRS, optional Firebase for leaderboards
 * Hosting, GitHub Pages using `docs/` or `gh-pages` branch, HTTPS
-
----
-
-## Content and safety guidelines
-
-* No destructive commands, no social engineering
-* Clear educational context per command, when and why it is used in labs or learning
-* Deterministic mock outputs, never execute on user machines
-* Age neutral, workplace safe visuals and copy
 
 ---
 
