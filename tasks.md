@@ -10,7 +10,7 @@ Legend: `[ ]` To do, `[x]` Done, `(review)` needs review, `(blocked)` blocked.
 
 * [x] **P1-001, Core loop screens**, Start, Play, Results, Replay, output: `src/ui/core-loop`
 * [x] **P1-002, Typing validation baseline**, char level accuracy, command complete detection, output: `src/logic/typing`
-* [ ] **P1-003, Scoring baseline**, base points, time bonus, error penalties, output: `src/logic/scoring`
+* [x] **P1-003, Scoring baseline**, base points, time bonus, error penalties, output: `src/logic/scoring`
 * [ ] **P1-004, Beginner command pack**, 30 to 50 safe hacker-themed commands with mock outputs, output: `content/packs/beginner.json`
 * [ ] **P1-005, Local storage basics**, highscores and simple progress, output: `src/storage/local`
 * [ ] **P1-006, Basic audio cues**, correct, error, level up, output: `assets/audio` and `src/audio`
