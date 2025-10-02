@@ -1,0 +1,556 @@
+{
+  "packId": "beginner",
+  "title": "Recon Basics",
+  "summary": "Foundational terminal commands for orientation, inspection, and safe data gathering.",
+  "difficulty": "beginner",
+  "commands": [
+    {
+      "id": "pwd",
+      "command": "pwd",
+      "description": "Print the working directory to confirm where you are before acting.",
+      "mock_output": "/home/analyst/lab\n",
+      "accepted_variants": [
+        "pwd"
+      ],
+      "tags": ["navigation", "context"]
+    },
+    {
+      "id": "ls",
+      "command": "ls",
+      "description": "List visible files to get a quick inventory of the current folder.",
+      "mock_output": "README.md\nnotes.txt\nlogs\nscripts\n",
+      "accepted_variants": [
+        "ls"
+      ],
+      "tags": ["navigation", "inventory"]
+    },
+    {
+      "id": "ls-la",
+      "command": "ls -la",
+      "description": "Reveal hidden files and permissions for deeper inspection.",
+      "mock_output": "total 24\ndrwxr-xr-x 4 analyst analysts 4096 Jan  9 09:12 .\ndrwxr-xr-x 5 analyst analysts 4096 Jan  9 08:55 ..\n-rw-r--r-- 1 analyst analysts  220 Jan  9 09:00 .bashrc\n-rw-r--r-- 1 analyst analysts   66 Jan  8 21:13 .profile\ndrwxr-xr-x 2 analyst analysts 4096 Jan  9 09:05 logs\n-rw-r--r-- 1 analyst analysts 1024 Jan  9 09:10 notes.txt\n-rwxr-xr-x 1 analyst analysts  532 Jan  9 09:11 scripts\n",
+      "accepted_variants": [
+        "ls -la",
+        "ls -al"
+      ],
+      "tags": ["navigation", "permissions"]
+    },
+    {
+      "id": "whoami",
+      "command": "whoami",
+      "description": "Confirm the active user for privilege awareness.",
+      "mock_output": "analyst\n",
+      "accepted_variants": [
+        "whoami"
+      ],
+      "tags": ["identity", "context"]
+    },
+    {
+      "id": "id",
+      "command": "id",
+      "description": "Display user and group IDs to understand access levels.",
+      "mock_output": "uid=1001(analyst) gid=1001(analysts) groups=1001(analysts),27(sudo)\n",
+      "accepted_variants": [
+        "id"
+      ],
+      "tags": ["identity", "permissions"]
+    },
+    {
+      "id": "hostname",
+      "command": "hostname",
+      "description": "Record the system name for your notes and future connections.",
+      "mock_output": "lab-terminal\n",
+      "accepted_variants": [
+        "hostname"
+      ],
+      "tags": ["context", "inventory"]
+    },
+    {
+      "id": "uname-a",
+      "command": "uname -a",
+      "description": "Capture kernel and architecture info for compatibility checks.",
+      "mock_output": "Linux lab-terminal 5.15.0-88-generic #98-Ubuntu SMP x86_64 GNU/Linux\n",
+      "accepted_variants": [
+        "uname -a"
+      ],
+      "tags": ["system", "recon"]
+    },
+    {
+      "id": "uname-r",
+      "command": "uname -r",
+      "description": "Get the kernel release version to reference advisories safely.",
+      "mock_output": "5.15.0-88-generic\n",
+      "accepted_variants": [
+        "uname -r"
+      ],
+      "tags": ["system", "context"]
+    },
+    {
+      "id": "cat-os-release",
+      "command": "cat /etc/os-release",
+      "description": "Check distribution details without altering the system.",
+      "mock_output": "NAME=\"Ubuntu\"\nVERSION=\"22.04.3 LTS (Jammy Jellyfish)\"\nID=ubuntu\nPRETTY_NAME=\"Ubuntu 22.04.3 LTS\"\n",
+      "accepted_variants": [
+        "cat /etc/os-release"
+      ],
+      "tags": ["system", "inventory"]
+    },
+    {
+      "id": "echo-note",
+      "command": "echo 'Ready for reconnaissance'",
+      "description": "Use echo to log status messages in your terminal transcript.",
+      "mock_output": "Ready for reconnaissance\n",
+      "accepted_variants": [
+        "echo 'Ready for reconnaissance'",
+        "printf 'Ready for reconnaissance\n'"
+      ],
+      "tags": ["basics", "output"]
+    },
+    {
+      "id": "date",
+      "command": "date",
+      "description": "Timestamp actions for timeline tracking.",
+      "mock_output": "Tue Jan 09 09:15:24 UTC 2024\n",
+      "accepted_variants": [
+        "date"
+      ],
+      "tags": ["context", "logging"]
+    },
+    {
+      "id": "cal",
+      "command": "cal",
+      "description": "Show the monthly calendar to plan scheduled tasks.",
+      "mock_output": "     January 2024\nSu Mo Tu We Th Fr Sa\n    1  2  3  4  5  6\n 7  8  9 10 11 12 13\n14 15 16 17 18 19 20\n21 22 23 24 25 26 27\n28 29 30 31\n",
+      "accepted_variants": [
+        "cal"
+      ],
+      "tags": ["basics", "context"]
+    },
+    {
+      "id": "uptime",
+      "command": "uptime",
+      "description": "Check system uptime and load for situational awareness.",
+      "mock_output": " 09:16:02 up  2:13,  1 user,  load average: 0.08, 0.12, 0.09\n",
+      "accepted_variants": [
+        "uptime"
+      ],
+      "tags": ["system", "metrics"]
+    },
+    {
+      "id": "w",
+      "command": "w",
+      "description": "List logged-in users to ensure you're alone on the system.",
+      "mock_output": " 09:16:33 up  2:14,  1 user,  load average: 0.05, 0.10, 0.09\nUSER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT\nanalyst  pts/0    10.0.0.20        09:01    1.00s  0.05s  0.00s bash\n",
+      "accepted_variants": [
+        "w"
+      ],
+      "tags": ["system", "monitoring"]
+    },
+    {
+      "id": "last-n5",
+      "command": "last -n 5",
+      "description": "Review recent logins for audit context.",
+      "mock_output": "analyst  pts/0        10.0.0.20        Tue Jan  9 09:01   still logged in\nanalyst  pts/0        10.0.0.20        Tue Jan  9 08:40 - 09:00  (00:20)\nrecon    pts/1        10.0.0.42        Tue Jan  9 08:10 - 08:30  (00:20)\nrecon    pts/1        10.0.0.42        Tue Jan  9 07:45 - 08:05  (00:20)\nlabadmin pts/2        :0               Tue Jan  9 07:00   still logged in\n",
+      "accepted_variants": [
+        "last -n 5",
+        "last -5"
+      ],
+      "tags": ["audit", "context"]
+    },
+    {
+      "id": "df-h",
+      "command": "df -h",
+      "description": "Check disk usage to avoid filling shared lab environments.",
+      "mock_output": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        60G   18G   39G  32% /\ntmpfs           1.9G  1.2M  1.9G   1% /run\n/dev/sdb1       200G   40G  151G  21% /data\n",
+      "accepted_variants": [
+        "df -h"
+      ],
+      "tags": ["storage", "monitoring"]
+    },
+    {
+      "id": "du-sh",
+      "command": "du -sh *",
+      "description": "Summarize folder sizes for quick cleanup planning without deleting anything.",
+      "mock_output": "logs\t12M\nnotes.txt\t4.0K\nscripts\t28K\nworkspace\t1.2G\n",
+      "accepted_variants": [
+        "du -sh *"
+      ],
+      "tags": ["storage", "inventory"]
+    },
+    {
+      "id": "free-h",
+      "command": "free -h",
+      "description": "Check memory usage when diagnosing slowdowns.",
+      "mock_output": "              total        used        free      shared  buff/cache   available\nMem:           7.7G        2.1G        3.8G        132M        1.8G        5.3G\nSwap:          2.0G          0B        2.0G\n",
+      "accepted_variants": [
+        "free -h"
+      ],
+      "tags": ["system", "monitoring"]
+    },
+    {
+      "id": "top-head",
+      "command": "top -b -n 1 | head -n 5",
+      "description": "Capture a quick snapshot of the top processes without leaving traces of interactive use.",
+      "mock_output": "top - 09:17:45 up  2:16,  1 user,  load average: 0.03, 0.09, 0.08\nTasks: 152 total,   1 running, 151 sleeping,   0 stopped,   0 zombie\n%Cpu(s):  3.2 us,  1.0 sy,  0.0 ni, 95.2 id,  0.3 wa,  0.0 hi,  0.3 si,  0.0 st\nMiB Mem :   7892.3 total,   2150.4 free,   1832.1 used,   1905.3 buff/cache\nMiB Swap:   2048.0 total,   2048.0 free,      0.0 used.   5222.4 avail Mem\n",
+      "accepted_variants": [
+        "top -b -n 1 | head -n 5"
+      ],
+      "tags": ["system", "monitoring"]
+    },
+    {
+      "id": "ps-aux-head",
+      "command": "ps aux --sort=-%cpu | head -n 5",
+      "description": "List the busiest processes in one snapshot.",
+      "mock_output": "USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\nanalyst   2145  8.0  1.2 708432 48720 pts/0    Sl   09:15   0:05 code\nroot      1021  2.2  0.3 124532 11240 ?        Ss   07:00   0:12 sshd\nanalyst   2208  1.1  0.1  94240  5432 pts/0    R+   09:17   0:00 ps\nroot       812  0.5  0.2  98200  6780 ?        Ss   07:00   0:03 systemd-journal\nroot       945  0.3  0.1  76480  4100 ?        Ss   07:00   0:01 cron\n",
+      "accepted_variants": [
+        "ps aux --sort=-%cpu | head -n 5"
+      ],
+      "tags": ["system", "monitoring"]
+    },
+    {
+      "id": "env",
+      "command": "env",
+      "description": "Print environment variables to understand context and credentials stored in variables.",
+      "mock_output": "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\nHOME=/home/analyst\nSHELL=/bin/bash\nLANG=en_US.UTF-8\nTERM=xterm-256color\n",
+      "accepted_variants": [
+        "env"
+      ],
+      "tags": ["context", "environment"]
+    },
+    {
+      "id": "printenv",
+      "command": "printenv USER",
+      "description": "Query a specific environment variable for targeted checks.",
+      "mock_output": "analyst\n",
+      "accepted_variants": [
+        "printenv USER",
+        "echo $USER"
+      ],
+      "tags": ["environment", "basics"]
+    },
+    {
+      "id": "history-tail",
+      "command": "history | tail -n 5",
+      "description": "Review recent commands to ensure consistency before reporting.",
+      "mock_output": " 996  ls -la\n 997  cat notes.txt\n 998  grep -n TODO notes.txt\n 999  history | tail -n 20\n1000  history | tail -n 5\n",
+      "accepted_variants": [
+        "history | tail -n 5",
+        "fc -l -5"
+      ],
+      "tags": ["audit", "basics"]
+    },
+    {
+      "id": "grep-todo",
+      "command": "grep -n 'TODO' notes.txt",
+      "description": "Search text files for follow-up items or clues.",
+      "mock_output": "12:TODO: confirm firewall change window\n27:TODO: export sanitized logs for report\n",
+      "accepted_variants": [
+        "grep -n 'TODO' notes.txt",
+        "rg -n 'TODO' notes.txt"
+      ],
+      "tags": ["search", "analysis"]
+    },
+    {
+      "id": "find-scripts",
+      "command": "find scripts -maxdepth 1 -type f",
+      "description": "List scripts stored in the project without running them.",
+      "mock_output": "scripts/check_logins.sh\nscripts/parse_alerts.py\n",
+      "accepted_variants": [
+        "find scripts -maxdepth 1 -type f",
+        "find ./scripts -maxdepth 1 -type f"
+      ],
+      "tags": ["inventory", "files"]
+    },
+    {
+      "id": "stat-notes",
+      "command": "stat notes.txt",
+      "description": "Check metadata on a file for modification timelines.",
+      "mock_output": "  File: notes.txt\n  Size: 1024       \tBlocks: 8          IO Block: 4096   regular file\nDevice: 803h/2051d\tInode: 654321      Links: 1\nAccess: (0644/-rw-r--r--)  Uid: ( 1001/ analyst)   Gid: ( 1001/ analysts)\nAccess: 2024-01-09 08:55:12.000000000 +0000\nModify: 2024-01-09 09:12:03.000000000 +0000\nChange: 2024-01-09 09:12:03.000000000 +0000\n",
+      "accepted_variants": [
+        "stat notes.txt"
+      ],
+      "tags": ["files", "audit"]
+    },
+    {
+      "id": "head-notes",
+      "command": "head -n 5 notes.txt",
+      "description": "Preview the top of a file without opening editors.",
+      "mock_output": "# Lab Notes\n- Collect service inventory\n- Verify patch levels\n- Capture baseline metrics\n- Draft report summary\n",
+      "accepted_variants": [
+        "head -n 5 notes.txt"
+      ],
+      "tags": ["files", "analysis"]
+    },
+    {
+      "id": "tail-logs",
+      "command": "tail -n 5 logs/auth.log",
+      "description": "Check recent authentication messages from saved lab logs.",
+      "mock_output": "Jan  9 09:10 lab-terminal sshd[1021]: Accepted password for analyst from 10.0.0.20 port 51542 ssh2\nJan  9 09:10 lab-terminal sshd[1021]: pam_unix(sshd:session): session opened for user analyst by (uid=0)\nJan  9 09:11 lab-terminal sudo:    analyst : TTY=pts/0 ; PWD=/home/analyst/lab ; USER=root ; COMMAND=/usr/bin/id\nJan  9 09:12 lab-terminal sshd[1021]: pam_unix(sshd:session): session closed for user analyst\nJan  9 09:13 lab-terminal sshd[1021]: Accepted password for analyst from 10.0.0.20 port 51562 ssh2\n",
+      "accepted_variants": [
+        "tail -n 5 logs/auth.log"
+      ],
+      "tags": ["logs", "analysis"]
+    },
+    {
+      "id": "wc-notes",
+      "command": "wc -l notes.txt",
+      "description": "Count lines in a report file to estimate effort left.",
+      "mock_output": "42 notes.txt\n",
+      "accepted_variants": [
+        "wc -l notes.txt"
+      ],
+      "tags": ["analysis", "files"]
+    },
+    {
+      "id": "cut-passwd",
+      "command": "cut -d: -f1 /etc/passwd | head -n 5",
+      "description": "List a few local usernames for orientation without exposing sensitive fields.",
+      "mock_output": "root\ndaemon\nbin\nsys\nsync\n",
+      "accepted_variants": [
+        "cut -d: -f1 /etc/passwd | head -n 5"
+      ],
+      "tags": ["inventory", "context"]
+    },
+    {
+      "id": "sort-uniq",
+      "command": "sort -u logs/alerts.txt",
+      "description": "Remove duplicate alert lines to focus on unique findings.",
+      "mock_output": "ALERT host1 suspicious DNS request\nALERT host2 repeated login failure\nALERT vpn1 new device connected\n",
+      "accepted_variants": [
+        "sort -u logs/alerts.txt"
+      ],
+      "tags": ["analysis", "logs"]
+    },
+    {
+      "id": "nl-checklist",
+      "command": "nl -ba checklist.md | head -n 5",
+      "description": "Number checklist items for quick reference in reports.",
+      "mock_output": "     1\t# Daily Checklist\n     2\t- Review overnight alerts\n     3\t- Verify sensor health\n     4\t- Update ticket queue\n     5\t- Prep daily briefing\n",
+      "accepted_variants": [
+        "nl -ba checklist.md | head -n 5"
+      ],
+      "tags": ["files", "reporting"]
+    },
+    {
+      "id": "column-align",
+      "command": "column -t logs/service-status.tsv",
+      "description": "Format tab-separated data for quick readability.",
+      "mock_output": "SERVICE        STATUS    LAST_CHECK\nweb-frontend   OK        2024-01-09T09:00Z\nauth-service   WARN      2024-01-09T08:57Z\nfileshare      OK        2024-01-09T08:50Z\n",
+      "accepted_variants": [
+        "column -t logs/service-status.tsv"
+      ],
+      "tags": ["analysis", "formatting"]
+    },
+    {
+      "id": "tr",
+      "command": "tr '[:lower:]' '[:upper:]' < notes.txt | head -n 2",
+      "description": "Transform case when preparing emphasis for reports.",
+      "mock_output": "# LAB NOTES\n- COLLECT SERVICE INVENTORY\n",
+      "accepted_variants": [
+        "tr '[:lower:]' '[:upper:]' < notes.txt | head -n 2"
+      ],
+      "tags": ["analysis", "formatting"]
+    },
+    {
+      "id": "sed-preview",
+      "command": "sed -n '1,3p' logs/service-status.tsv",
+      "description": "Preview specific lines from structured logs.",
+      "mock_output": "SERVICE\tSTATUS\tLAST_CHECK\nweb-frontend\tOK\t2024-01-09T09:00Z\nauth-service\tWARN\t2024-01-09T08:57Z\n",
+      "accepted_variants": [
+        "sed -n '1,3p' logs/service-status.tsv"
+      ],
+      "tags": ["logs", "analysis"]
+    },
+    {
+      "id": "awk-status",
+      "command": "awk '$2 == \"WARN\" {print $1, $3}' logs/service-status.tsv",
+      "description": "Filter warning services with awk for targeted follow-up.",
+      "mock_output": "auth-service 2024-01-09T08:57Z\n",
+      "accepted_variants": [
+        "awk '$2 == \"WARN\" {print $1, $3}' logs/service-status.tsv"
+      ],
+      "tags": ["analysis", "logs"]
+    },
+    {
+      "id": "jq-pretty",
+      "command": "jq '.alerts[] | {id, severity}' logs/alerts.json",
+      "description": "Pretty-print selected JSON fields to triage alerts.",
+      "mock_output": "{\n  \"id\": \"alert-102\",\n  \"severity\": \"medium\"\n}\n{\n  \"id\": \"alert-110\",\n  \"severity\": \"low\"\n}\n",
+      "accepted_variants": [
+        "jq '.alerts[] | {id, severity}' logs/alerts.json"
+      ],
+      "tags": ["json", "analysis"]
+    },
+    {
+      "id": "ip-a",
+      "command": "ip a",
+      "description": "List network interfaces and addresses for situational awareness.",
+      "mock_output": "1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default\n    inet 127.0.0.1/8 scope host lo\n2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP group default\n    inet 10.0.0.20/24 brd 10.0.0.255 scope global eth0\n",
+      "accepted_variants": [
+        "ip a",
+        "ip addr"
+      ],
+      "tags": ["network", "recon"]
+    },
+    {
+      "id": "ip-route",
+      "command": "ip route",
+      "description": "Review routing table to plan safe scans within allowed ranges.",
+      "mock_output": "default via 10.0.0.1 dev eth0 proto dhcp metric 100\n10.0.0.0/24 dev eth0 proto kernel scope link src 10.0.0.20\n",
+      "accepted_variants": [
+        "ip route"
+      ],
+      "tags": ["network", "context"]
+    },
+    {
+      "id": "ss-t",
+      "command": "ss -tuna | head -n 5",
+      "description": "Check active TCP/UDP sockets captured from a safe snapshot.",
+      "mock_output": "Netid State  Recv-Q Send-Q Local Address:Port Peer Address:Port Process\ntcp   LISTEN 0      4096 127.0.0.1:5432      0.0.0.0:*\ntcp   ESTAB  0      0    10.0.0.20:51562  10.0.0.5:22\nudp   UNCONN 0      0    0.0.0.0:68        0.0.0.0:*\n",
+      "accepted_variants": [
+        "ss -tuna | head -n 5"
+      ],
+      "tags": ["network", "monitoring"]
+    },
+    {
+      "id": "ping-count",
+      "command": "ping -c 4 10.0.0.1",
+      "description": "Test gateway reachability with a limited ping count.",
+      "mock_output": "PING 10.0.0.1 (10.0.0.1) 56(84) bytes of data.\n64 bytes from 10.0.0.1: icmp_seq=1 ttl=64 time=0.472 ms\n64 bytes from 10.0.0.1: icmp_seq=2 ttl=64 time=0.480 ms\n64 bytes from 10.0.0.1: icmp_seq=3 ttl=64 time=0.463 ms\n64 bytes from 10.0.0.1: icmp_seq=4 ttl=64 time=0.471 ms\n\n--- 10.0.0.1 ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss, time 3006ms\nrtt min/avg/max/mdev = 0.463/0.472/0.480/0.006 ms\n",
+      "accepted_variants": [
+        "ping -c 4 10.0.0.1"
+      ],
+      "tags": ["network", "recon"]
+    },
+    {
+      "id": "dig-soa",
+      "command": "dig +short soa example.com",
+      "description": "Query DNS start of authority records to confirm authoritative servers.",
+      "mock_output": "ns1.example.com. admin.example.com. 2024010901 7200 3600 1209600 3600\n",
+      "accepted_variants": [
+        "dig +short soa example.com"
+      ],
+      "tags": ["network", "dns"]
+    },
+    {
+      "id": "curl-head",
+      "command": "curl -I https://example.com",
+      "description": "Fetch HTTP headers to check service status without downloading content.",
+      "mock_output": "HTTP/2 200 \nserver: nginx\ndate: Tue, 09 Jan 2024 09:18:55 GMT\ncontent-type: text/html; charset=UTF-8\n",
+      "accepted_variants": [
+        "curl -I https://example.com"
+      ],
+      "tags": ["network", "web"]
+    },
+    {
+      "id": "curl-json",
+      "command": "curl -s https://api.example.com/status | jq '.summary'",
+      "description": "Retrieve JSON status information for documentation.",
+      "mock_output": "\"All systems nominal\"\n",
+      "accepted_variants": [
+        "curl -s https://api.example.com/status | jq '.summary'"
+      ],
+      "tags": ["network", "json"]
+    },
+    {
+      "id": "wget-spider",
+      "command": "wget --spider https://example.com/health",
+      "description": "Check endpoint availability without storing files.",
+      "mock_output": "Spider mode enabled. Check if remote file exists.\nHTTP request sent, awaiting response... 200 OK\nLength: unspecified\nRemote file exists and could contain further links, but recursion is disabled.\n",
+      "accepted_variants": [
+        "wget --spider https://example.com/health"
+      ],
+      "tags": ["network", "web"]
+    },
+    {
+      "id": "nmap-ping-sweep",
+      "command": "nmap -sn 10.0.0.0/30",
+      "description": "Perform a limited host discovery sweep within authorized lab ranges.",
+      "mock_output": "Starting Nmap 7.94 ( https://nmap.org ) at 2024-01-09 09:19 UTC\nNmap scan report for 10.0.0.1\nHost is up (0.00045s latency).\nNmap scan report for 10.0.0.2\nHost is up (0.00039s latency).\nNmap scan report for 10.0.0.3\nHost is up (0.00052s latency).\nNmap done: 4 IP addresses (3 hosts up) scanned in 0.40 seconds\n",
+      "accepted_variants": [
+        "nmap -sn 10.0.0.0/30"
+      ],
+      "tags": ["network", "recon"]
+    },
+    {
+      "id": "ssh-keyscan",
+      "command": "ssh-keyscan -H lab-gateway",
+      "description": "Collect an SSH host key fingerprint to verify trust before connecting.",
+      "mock_output": "# lab-gateway:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3\nlab-gateway ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJZ5k1uQxumvEXAMPLEfingerprintonly\n",
+      "accepted_variants": [
+        "ssh-keyscan -H lab-gateway"
+      ],
+      "tags": ["network", "ssh"]
+    },
+    {
+      "id": "scp-list",
+      "command": "scp -r --dry-run reports/ analyst@jump:/tmp/reports",
+      "description": "Simulate copying reports to verify the transfer path before executing.",
+      "mock_output": "reports/\nreports/daily-summary.md\nreports/service-checks.csv\n",
+      "accepted_variants": [
+        "scp -r --dry-run reports/ analyst@jump:/tmp/reports"
+      ],
+      "tags": ["transfer", "ssh"]
+    },
+    {
+      "id": "tar-list",
+      "command": "tar -tzf archives/logs-2024-01-09.tgz | head -n 5",
+      "description": "List archive contents to confirm required files exist.",
+      "mock_output": "logs/\nlogs/auth.log\nlogs/syslog\nlogs/service-status.tsv\nlogs/alerts.json\n",
+      "accepted_variants": [
+        "tar -tzf archives/logs-2024-01-09.tgz | head -n 5"
+      ],
+      "tags": ["archives", "inventory"]
+    },
+    {
+      "id": "gzip-test",
+      "command": "gzip -l archives/logs-2024-01-09.tgz",
+      "description": "Inspect compressed archive sizes without extracting.",
+      "mock_output": "         compressed        uncompressed  ratio uncompressed_name\n              20480               51200  60.0% logs/auth.log\n              10240               20480  50.0% logs/syslog\n",
+      "accepted_variants": [
+        "gzip -l archives/logs-2024-01-09.tgz"
+      ],
+      "tags": ["archives", "analysis"]
+    },
+    {
+      "id": "md5sum",
+      "command": "md5sum reports/daily-summary.md",
+      "description": "Generate a hash to confirm integrity when sharing files.",
+      "mock_output": "f1a53f03cbb8d515f5b5c03b0e8368bd  reports/daily-summary.md\n",
+      "accepted_variants": [
+        "md5sum reports/daily-summary.md"
+      ],
+      "tags": ["integrity", "hashing"]
+    },
+    {
+      "id": "sha256sum",
+      "command": "sha256sum reports/daily-summary.md",
+      "description": "Capture a stronger hash alongside MD5 for verification.",
+      "mock_output": "e75c41fb64e7f82f047e5692a7423a03c9f3c7cbf4370df8552dd2f0d6fdf0e1  reports/daily-summary.md\n",
+      "accepted_variants": [
+        "sha256sum reports/daily-summary.md"
+      ],
+      "tags": ["integrity", "hashing"]
+    },
+    {
+      "id": "tee-log",
+      "command": "echo 'Scan complete' | tee -a activity.log",
+      "description": "Append a note to the shared activity log while still seeing the output.",
+      "mock_output": "Scan complete\n",
+      "accepted_variants": [
+        "echo 'Scan complete' | tee -a activity.log"
+      ],
+      "tags": ["logging", "basics"]
+    },
+    {
+      "id": "watch-df",
+      "command": "watch -n 5 'df -h /data'",
+      "description": "Monitor disk usage for short intervals without scripts.",
+      "mock_output": "Every 5.0s: df -h /data\nFilesystem      Size  Used Avail Use% Mounted on\n/dev/sdb1       200G   40G  151G  21% /data\n",
+      "accepted_variants": [
+        "watch -n 5 'df -h /data'"
+      ],
+      "tags": ["monitoring", "storage"]
+    }
+  ]
+}
