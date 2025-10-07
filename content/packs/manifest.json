@@ -1,0 +1,26 @@
+{
+  "packs": [
+    {
+      "packId": "beginner",
+      "title": "Recon Basics",
+      "summary": "One-word terminal fundamentals for easing into ten-finger typing.",
+      "difficulty": "beginner",
+      "commandCount": 30,
+      "default": true
+    },
+    {
+      "packId": "intermediate",
+      "title": "Ops Efficiency",
+      "summary": "Command-line routines for analysts juggling multiple pivots per run.",
+      "difficulty": "intermediate",
+      "commandCount": 36
+    },
+    {
+      "packId": "advanced",
+      "title": "Red Team Ops",
+      "summary": "Full-spectrum tradecraft spanning pivoting, AD exploitation en cloud ops.",
+      "difficulty": "advanced",
+      "commandCount": 34
+    }
+  ]
+}

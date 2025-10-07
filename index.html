@@ -24,21 +24,107 @@
       <div class="panel">
         <h2 class="panel-title">Begin de run</h2>
         <p class="pack-meta" id="pack-summary"></p>
+        <div class="pack-picker">
+          <label for="pack-select" class="picker-label">Kies een command pack</label>
+          <select id="pack-select" class="picker-select" aria-describedby="pack-summary">
+            <option value="" disabled>Pack laden…</option>
+          </select>
+        </div>
         <dl class="info-grid">
           <div>
             <dt>Pack</dt>
             <dd id="pack-title">–</dd>
           </div>
           <div>
+            <dt>Moeilijkheid</dt>
+            <dd id="pack-difficulty">–</dd>
+          </div>
+          <div>
+            <dt>Commando's</dt>
+            <dd id="pack-size">0</dd>
+          </div>
+          <div>
             <dt>Doel</dt>
             <dd>60s, zo veel mogelijk geldige commands</dd>
           </div>
           <div>
-            <dt>Highscore</dt>
-            <dd id="start-highscore">0</dd>
+            <dt>Beste score</dt>
+            <dd id="pack-best">0</dd>
           </div>
         </dl>
-        <button type="button" class="btn btn-primary" data-action="start-run">Start run</button>
+        <div class="start-actions">
+          <button type="button" class="btn btn-primary" data-action="start-run">Start run</button>
+          <button type="button" class="btn" data-action="start-tutorial">60s tutorial</button>
+        </div>
+        <p class="tutorial-status" id="tutorial-status"></p>
+      </div>
+    </section>
+
+    <section data-screen="tutorial" class="screen" hidden>
+      <div class="panel tutorial" role="application" aria-describedby="tutorial-hint tutorial-caps">
+        <header class="tutorial-header">
+          <div>
+            <h2 class="panel-title">60s introductie</h2>
+            <p class="pack-meta">Leer de basisflow voordat je aan de echte run begint.</p>
+          </div>
+          <div class="tutorial-stats">
+            <div>
+              <span class="label">Tijd</span>
+              <span class="value" id="tutorial-time">60s</span>
+            </div>
+            <div>
+              <span class="label">Stap</span>
+              <span class="value" id="tutorial-progress">0/0</span>
+            </div>
+          </div>
+          <p id="tutorial-caps" class="caps" role="alert" aria-live="assertive" hidden>Caps Lock staat aan.</p>
+        </header>
+
+        <section class="tutorial-session" id="tutorial-session">
+          <article class="tutorial-card" aria-live="polite">
+            <h3 class="command-title" id="tutorial-command">–</h3>
+            <p class="command-description" id="tutorial-description"></p>
+            <pre class="command-output" id="tutorial-output" aria-hidden="true"></pre>
+          </article>
+
+          <div class="input-region tutorial-input">
+            <label for="tutorial-input" class="sr-only">Typ het getoonde commando</label>
+            <div class="command-display" id="tutorial-display">&nbsp;</div>
+            <input id="tutorial-input" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" disabled>
+          </div>
+
+          <footer class="tutorial-footer" role="status" aria-live="polite">
+            <p class="hint" id="tutorial-hint">Druk op Start tutorial om te beginnen.</p>
+          </footer>
+
+          <div class="tutorial-actions">
+            <button type="button" class="btn btn-primary" data-action="tutorial-start">Start tutorial</button>
+            <button type="button" class="btn" data-action="tutorial-skip">Sla over</button>
+          </div>
+        </section>
+
+        <section class="tutorial-summary" id="tutorial-summary" hidden>
+          <h3 class="panel-title">Goed gedaan</h3>
+          <p class="pack-meta">Je hebt de introductie afgerond. Klaar voor het echte werk?</p>
+          <dl class="info-grid">
+            <div>
+              <dt>Commands</dt>
+              <dd id="tutorial-summary-commands">0</dd>
+            </div>
+            <div>
+              <dt>Accuracy</dt>
+              <dd id="tutorial-summary-accuracy">100%</dd>
+            </div>
+            <div>
+              <dt>WPM</dt>
+              <dd id="tutorial-summary-wpm">0</dd>
+            </div>
+          </dl>
+          <div class="tutorial-actions">
+            <button type="button" class="btn btn-primary" data-action="tutorial-finish">Ga naar start</button>
+            <button type="button" class="btn" data-action="tutorial-retry">Nogmaals spelen</button>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -99,7 +185,7 @@
             <dd id="result-acc">100%</dd>
           </div>
           <div>
-            <dt>Highscore</dt>
+            <dt>Beste score</dt>
             <dd id="result-highscore">0</dd>
           </div>
         </dl>

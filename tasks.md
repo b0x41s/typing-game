@@ -15,14 +15,14 @@ Legend: `[ ]` To do, `[x]` Done, `(review)` needs review, `(blocked)` blocked.
 * [x] **P1-005, Local storage basics**, highscores and simple progress, output: `src/storage/local`
 * [x] **P1-006, Basic audio cues**, correct, error, level up, output: `assets/audio` and `src/audio`
 * [x] **P1-007, Basic animations**, success glow, error shake, output: `src/ui/animations`
-* [ ] **P1-008, Onboarding tutorial**, 60 second tutorial, output: `src/ui/onboarding`
+* [x] **P1-008, Onboarding tutorial**, 60 second tutorial, output: `src/ui/onboarding`
 * [x] **P1-009, GitHub Pages deployment**, `docs/` or `gh-pages` configured, relative paths verified, output: `deploy/`
 
 ---
 
 ## Priority 2, Core depth and progression
 
-* [ ] **P2-010, Difficulty split**, packs for beginner, intermediate, advanced, output: `content/packs/*.json`
+* [x] **P2-010, Difficulty split**, packs for beginner, intermediate, advanced, output: `content/packs/*.json`
 * [ ] **P2-011, Command metadata fields**, description, tags, variants, mock output, output: `content/schema/command-pack.schema.json`
 * [ ] **P2-012, Combo and multiplier UI**, visible meter and effects, output: `src/ui/combo`
 * [ ] **P2-013, Progressive hint system**, token, flag, character reveal with costs, output: `src/logic/hints`

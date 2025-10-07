@@ -96,6 +96,48 @@ h1 {
   color: var(--muted);
 }
 
+.pack-picker {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 20px;
+}
+
+.picker-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.picker-select {
+  appearance: none;
+  border-radius: 8px;
+  background: rgba(4, 8, 12, 0.85);
+  border: 1px solid rgba(61, 250, 114, 0.24);
+  color: var(--text);
+  padding: 10px 40px 10px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.3;
+  position: relative;
+  background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%),
+    linear-gradient(135deg, var(--accent) 50%, transparent 50%);
+  background-position: calc(100% - 24px) calc(50% - 4px), calc(100% - 16px) calc(50% - 4px);
+  background-size: 8px 8px, 8px 8px;
+  background-repeat: no-repeat;
+}
+
+.picker-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(61, 250, 114, 0.2);
+}
+
+.picker-select:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -115,6 +157,18 @@ h1 {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tutorial-status {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .status-line {
@@ -170,6 +224,65 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.tutorial {
+  gap: 24px;
+}
+
+.tutorial-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tutorial-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  background: rgba(9, 14, 19, 0.75);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(61, 250, 114, 0.12);
+}
+
+.tutorial-stats .label {
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tutorial-stats .value {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.tutorial-card {
+  display: grid;
+  gap: 10px;
+}
+
+.tutorial-input {
+  margin-top: 8px;
+}
+
+.tutorial-footer {
+  margin-top: 16px;
+}
+
+.tutorial-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.tutorial-summary {
+  display: grid;
+  gap: 18px;
 }
 
 .stat-block {
@@ -353,7 +466,8 @@ h1 {
   font-size: 0.82rem;
 }
 
-.result-actions {
+.result-actions,
+.tutorial-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -397,7 +511,8 @@ h1 {
 }
 
 @media (max-width: 420px) {
-  .result-actions {
+  .result-actions,
+  .tutorial-actions {
     flex-direction: column;
   }
 }

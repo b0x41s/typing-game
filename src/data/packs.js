@@ -102,6 +102,50 @@ function normalisePack(raw, fallbackId = 'pack') {
   };
 }
 
+let manifestCache = null;
+
+function normaliseManifestEntry(entry, index) {
+  if (!entry || typeof entry !== 'object') {
+    return null;
+  }
+  const packId = String(entry.packId ?? `pack-${index}`).trim();
+  if (!packId) {
+    return null;
+  }
+  return {
+    packId,
+    title: entry.title ? String(entry.title).trim() : 'HackType pack',
+    summary: entry.summary ? String(entry.summary).trim() : 'Command pack',
+    difficulty: entry.difficulty ? String(entry.difficulty).trim().toLowerCase() : 'mixed',
+    commandCount: Math.max(0, Math.floor(Number(entry.commandCount) || 0)),
+    default: Boolean(entry.default)
+  };
+}
+
+export async function loadManifest() {
+  if (manifestCache) {
+    return manifestCache;
+  }
+  const response = await fetch('content/packs/manifest.json', { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Kan manifest niet laden (${response.status}).`);
+  }
+  const json = await response.json();
+  const entries = Array.isArray(json.packs) ? json.packs : [];
+  const manifest = entries
+    .map(normaliseManifestEntry)
+    .filter(Boolean);
+  if (!manifest.length) {
+    throw new Error('Pack manifest bevat geen items.');
+  }
+  manifestCache = manifest;
+  return manifestCache;
+}
+
+export function clearManifestCache() {
+  manifestCache = null;
+}
+
 export async function loadPack(packId = 'beginner') {
   const response = await fetch(`content/packs/${packId}.json`, { cache: 'no-store' });
   if (!response.ok) {

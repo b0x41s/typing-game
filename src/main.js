@@ -1,7 +1,9 @@
-import { loadPack, createFallbackPack } from './data/packs.js';
+import { loadPack, createFallbackPack, loadManifest } from './data/packs.js';
 import { createAudioController } from './audio/index.js';
 import { createAnimationController } from './ui/animations/index.js';
 import { createCoreLoop } from './ui/core-loop/index.js';
+import { createOnboarding } from './ui/onboarding/index.js';
+import { getProgress } from './storage/local/index.js';
 
 const DEFAULT_PACK_ID = 'beginner';
 const RUN_DURATION_SECONDS = 60;
@@ -47,6 +49,7 @@ async function bootstrap() {
   const screens = {
     loading: app.querySelector('[data-screen="loading"]'),
     start: app.querySelector('[data-screen="start"]'),
+    tutorial: app.querySelector('[data-screen="tutorial"]'),
     play: app.querySelector('[data-screen="play"]'),
     results: app.querySelector('[data-screen="results"]')
   };
@@ -56,29 +59,77 @@ async function bootstrap() {
 
   const liveRegion = document.getElementById('live-region');
   const announce = createAnnouncer(liveRegion);
+  const progress = getProgress();
 
-  let pack;
+  let manifestEntries;
   try {
-    pack = await loadPack(DEFAULT_PACK_ID);
+    manifestEntries = await loadManifest();
   } catch (error) {
-    console.warn('HackType: pack laden mislukt, val terug op ingebakken lijst.', error);
-    pack = createFallbackPack(DEFAULT_PACK_ID);
-    showLoading(screens, 'Pack laden faalde. Fallback geactiveerd.');
+    console.warn('HackType: manifest laden mislukt, val terug op standaardlijst.', error);
+    manifestEntries = [
+      {
+        packId: DEFAULT_PACK_ID,
+        title: 'Fallback Ops',
+        summary: 'Ingebakken reeks commandoregels voor als het pack niet laadt.',
+        difficulty: 'mixed',
+        commandCount: 0,
+        default: true
+      }
+    ];
   }
+
+  const knownPackIds = new Set(manifestEntries.map((entry) => entry.packId));
+  const defaultEntry = manifestEntries.find((entry) => entry.default) ?? manifestEntries[0];
+  let initialPackId = progress.lastPackId && knownPackIds.has(progress.lastPackId)
+    ? progress.lastPackId
+    : defaultEntry?.packId ?? DEFAULT_PACK_ID;
+
+  async function loadPackSafe(packId) {
+    const targetId = packId || DEFAULT_PACK_ID;
+    try {
+      return await loadPack(targetId);
+    } catch (error) {
+      console.warn(`HackType: pack ${targetId} laden mislukt, val terug op fallback.`, error);
+      return createFallbackPack(targetId);
+    }
+  }
+
+  const pack = await loadPackSafe(initialPackId);
 
   const audio = createAudioController();
   const animations = createAnimationController();
 
-  const coreLoop = createCoreLoop({
+  let coreLoop;
+
+  const onboarding = createOnboarding({
     screens,
+    announce,
+    audio,
+    animations,
+    onFinish: () => {
+      coreLoop.showStartScreen();
+    }
+  });
+
+  coreLoop = createCoreLoop({
+    screens,
+    manifest: manifestEntries,
     pack,
     durationSeconds: RUN_DURATION_SECONDS,
     announce,
     audio,
-    animations
+    animations,
+    onTutorialRequested: () => {
+      onboarding.showIntro();
+    },
+    loadPackById: loadPackSafe
   });
 
-  coreLoop.showStartScreen();
+  if (progress.tutorialCompleted) {
+    coreLoop.showStartScreen();
+  } else {
+    onboarding.showIntro();
+  }
 }
 
 bootstrap().catch((error) => {

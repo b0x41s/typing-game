@@ -7,13 +7,15 @@ HackType is een statische 60-seconden typchallenge met een Tex-Tribe vibe. Je sp
 ## Features
 - Core loop met aparte start-, play- en result-schermen voor razendsnelle herstarts.
 - Commando-kaarten uit `content/packs/beginner.json` met beschrijving, tags en mock output.
+- Pack selector met beginner-, intermediate- en advanced-sets vanuit `content/packs/*.json` en `content/packs/manifest.json`.
 - Live statistieken voor tijd, aantal commands, WPM (5-cpm norm) en accuracy op basis van alle toetsaanslagen.
 - Scoring breakdown volgens `src/logic/scoring.js` met basispunten, tijdbonus en foutpenalty.
 - Highscore en pack-progress via `src/storage/local`, veilig opgeslagen in `localStorage` met in-memory fallback.
 - Caps Lock waarschuwing en toetsenbordvriendelijke flow met automatische pauze bij tab-verlies.
+- Inclusief 60s onboarding tutorial (`src/ui/onboarding`) die nieuwe spelers stap-voor-stap begeleidt.
 
 ## Hoe speel je
-1. Open de site in je browser en klik **Start run**.
+1. Open de site in je browser, kies het gewenste pack en klik **Start run**.
 2. Typ het getoonde commando exact na. Varianten die in het pack staan worden automatisch herkend.
 3. Zodra het commando klopt, verschijnt direct de volgende opdracht. Blijf typen tot de 60 seconden voorbij zijn.
 4. Na afloop zie je score, accuracy en highscore. Gebruik **Opnieuw spelen** of druk `Enter` op het result-scherm om direct een nieuwe run te starten.
