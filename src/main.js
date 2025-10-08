@@ -3,7 +3,7 @@ import { createAudioController } from './audio/index.js';
 import { createAnimationController } from './ui/animations/index.js';
 import { createCoreLoop } from './ui/core-loop/index.js';
 import { createOnboarding } from './ui/onboarding/index.js';
-import { getProgress, setAudioEnabled } from './storage/local/index.js';
+import { getProgress, setMusicPreference, setEffectsPreference } from './storage/local/index.js';
 
 const DEFAULT_PACK_ID = 'beginner';
 const RUN_DURATION_SECONDS = 60;
@@ -54,20 +54,36 @@ async function bootstrap() {
     results: app.querySelector('[data-screen="results"]')
   };
 
-  const audioToggleButton = app.querySelector('[data-action="toggle-audio"]');
+  const musicToggleButton = app.querySelector('[data-action="toggle-music"]');
+  const effectsToggleButton = app.querySelector('[data-action="toggle-effects"]');
 
-  function updateAudioToggle(enabled) {
-    if (!audioToggleButton) {
+  function updateMusicToggle(enabled) {
+    if (!musicToggleButton) {
       return;
     }
-    audioToggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-    const icon = audioToggleButton.querySelector('.audio-toggle-icon');
-    const label = audioToggleButton.querySelector('[data-audio-label]');
+    musicToggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    const icon = musicToggleButton.querySelector('.audio-toggle-icon');
+    const label = musicToggleButton.querySelector('[data-music-label]');
     if (icon) {
-      icon.textContent = enabled ? '🔊' : '🔇';
+      icon.textContent = enabled ? '🎵' : '🔇';
     }
     if (label) {
-      label.textContent = enabled ? 'Geluid aan' : 'Geluid uit';
+      label.textContent = enabled ? 'Muziek aan' : 'Muziek uit';
+    }
+  }
+
+  function updateEffectsToggle(enabled) {
+    if (!effectsToggleButton) {
+      return;
+    }
+    effectsToggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    const icon = effectsToggleButton.querySelector('.audio-toggle-icon');
+    const label = effectsToggleButton.querySelector('[data-effects-label]');
+    if (icon) {
+      icon.textContent = enabled ? '🎯' : '🔕';
+    }
+    if (label) {
+      label.textContent = enabled ? 'Effecten aan' : 'Effecten uit';
     }
   }
 
@@ -116,31 +132,64 @@ async function bootstrap() {
   const audio = createAudioController();
   const supportsWebAudio = typeof window !== 'undefined'
     && (typeof window.AudioContext === 'function' || typeof window.webkitAudioContext === 'function');
-  const initialAudioEnabled = supportsWebAudio && progress.audioEnabled !== false;
-  audio.setEnabled(initialAudioEnabled);
-  updateAudioToggle(initialAudioEnabled);
+  const audioPreferences = progress.audio || { musicEnabled: true, effectsEnabled: true };
+  const initialMusicEnabled = supportsWebAudio && audioPreferences.musicEnabled !== false;
+  const initialEffectsEnabled = supportsWebAudio && audioPreferences.effectsEnabled !== false;
 
-  if (audioToggleButton) {
-    if (!supportsWebAudio) {
-      audioToggleButton.disabled = true;
-      audioToggleButton.setAttribute('aria-pressed', 'false');
-      const icon = audioToggleButton.querySelector('.audio-toggle-icon');
-      const label = audioToggleButton.querySelector('[data-audio-label]');
+  audio.setMusicEnabled(initialMusicEnabled);
+  audio.setEffectsEnabled(initialEffectsEnabled);
+  updateMusicToggle(initialMusicEnabled);
+  updateEffectsToggle(initialEffectsEnabled);
+
+  if (!supportsWebAudio) {
+    if (musicToggleButton) {
+      musicToggleButton.disabled = true;
+      musicToggleButton.setAttribute('aria-pressed', 'false');
+      const icon = musicToggleButton.querySelector('.audio-toggle-icon');
+      const label = musicToggleButton.querySelector('[data-music-label]');
       if (icon) {
         icon.textContent = '🚫';
       }
       if (label) {
-        label.textContent = 'Geen geluid';
+        label.textContent = 'Geen muziek';
       }
-    } else {
-      audioToggleButton.addEventListener('click', () => {
-        const nextEnabled = !audio.isEnabled();
-        audio.setEnabled(nextEnabled);
+    }
+    if (effectsToggleButton) {
+      effectsToggleButton.disabled = true;
+      effectsToggleButton.setAttribute('aria-pressed', 'false');
+      const icon = effectsToggleButton.querySelector('.audio-toggle-icon');
+      const label = effectsToggleButton.querySelector('[data-effects-label]');
+      if (icon) {
+        icon.textContent = '🚫';
+      }
+      if (label) {
+        label.textContent = 'Geen effecten';
+      }
+    }
+  } else {
+    if (musicToggleButton) {
+      musicToggleButton.addEventListener('click', () => {
+        const nextEnabled = !audio.isMusicEnabled();
+        audio.setMusicEnabled(nextEnabled);
+        updateMusicToggle(nextEnabled);
+        if (nextEnabled) {
+          audio.unlock();
+          audio.startBackgroundMusic();
+        } else {
+          audio.stopBackgroundMusic();
+        }
+        setMusicPreference(nextEnabled);
+      });
+    }
+    if (effectsToggleButton) {
+      effectsToggleButton.addEventListener('click', () => {
+        const nextEnabled = !audio.areEffectsEnabled();
+        audio.setEffectsEnabled(nextEnabled);
+        updateEffectsToggle(nextEnabled);
         if (nextEnabled) {
           audio.unlock();
         }
-        updateAudioToggle(nextEnabled);
-        setAudioEnabled(nextEnabled);
+        setEffectsPreference(nextEnabled);
       });
     }
   }
@@ -154,7 +203,9 @@ async function bootstrap() {
       }
       handled = true;
       audio.unlock();
-      audio.startBackgroundMusic();
+      if (audio.isMusicEnabled()) {
+        audio.startBackgroundMusic();
+      }
     }
     const onceListener = () => {
       document.removeEventListener('pointerdown', onceListener);
