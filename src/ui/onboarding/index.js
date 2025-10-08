@@ -251,6 +251,7 @@ export function createOnboarding({ screens, announce, audio, animations, onFinis
       inputEl.focus();
     }
     audio?.unlock();
+    audio?.startBackgroundMusic();
     prepareNextCommand();
     startTimer();
   }

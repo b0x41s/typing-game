@@ -87,14 +87,63 @@ function createOscillatorStep(context, outputGain, preset, step, startTime) {
   oscillator.stop(releaseTime + 0.05);
 }
 
+function normaliseMusicSources(primaryUrl, sources) {
+  const unique = new Set();
+  const result = [];
+
+  function push(candidate) {
+    if (!candidate) {
+      return;
+    }
+    const url = String(candidate).trim();
+    if (!url || unique.has(url)) {
+      return;
+    }
+    unique.add(url);
+    result.push(url);
+  }
+
+  if (Array.isArray(sources)) {
+    sources.forEach((item) => {
+      if (typeof item === 'string') {
+        push(item);
+      } else if (item && typeof item === 'object' && typeof item.src === 'string') {
+        push(item.src);
+      }
+    });
+  }
+
+  if (primaryUrl) {
+    push(primaryUrl);
+  }
+
+  return result;
+}
+
 export function createAudioController({
   presetsUrl = 'assets/audio/presets.json',
-  masterVolume = 0.7
+  masterVolume = 0.7,
+  musicUrl = 'assets/audio/chiptune-bg.wav',
+  musicVolume = 0.18,
+  musicSources = null
 } = {}) {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const supportsAudio = Boolean(AudioContextClass);
+  const resolvedMusicSources = normaliseMusicSources(
+    musicUrl,
+    Array.isArray(musicSources) && musicSources.length
+      ? musicSources
+      : ['assets/audio/chiptune-bg.mp3', musicUrl, 'assets/audio/chiptune-bg.wav']
+  );
+
   let context = null;
   let outputGain = null;
+  let musicGain = null;
+  let musicSourceNode = null;
+  let musicBuffer = null;
+  let musicLoadPromise = null;
+  let musicOffset = 0;
+  let musicStartedAt = 0;
   let enabled = true;
   let loadedPresets = null;
   let loadPromise = null;
@@ -109,9 +158,43 @@ export function createAudioController({
       outputGain.gain.value = Math.max(0, Math.min(1, masterVolume));
       outputGain.connect(context.destination);
     } else if (context.state === 'suspended') {
-      context.resume();
+      context.resume().catch(() => {});
     }
     return context;
+  }
+
+  function ensureMusicGain(ctx) {
+    if (!ctx || !resolvedMusicSources.length) {
+      return null;
+    }
+    if (!musicGain) {
+      musicGain = ctx.createGain();
+      musicGain.gain.value = Math.max(0, Math.min(1, musicVolume));
+      if (outputGain) {
+        musicGain.connect(outputGain);
+      } else {
+        musicGain.connect(ctx.destination);
+      }
+    }
+    return musicGain;
+  }
+
+  function stopMusicNode() {
+    if (!musicSourceNode) {
+      return;
+    }
+    try {
+      musicSourceNode.stop();
+    } catch (error) {
+      // Bron kan al gestopt zijn; negeren.
+    }
+    try {
+      musicSourceNode.disconnect();
+    } catch (error) {
+      // Node kan al ontkoppeld zijn; negeren.
+    }
+    musicSourceNode.onended = null;
+    musicSourceNode = null;
   }
 
   function loadPresets() {
@@ -133,6 +216,42 @@ export function createAudioController({
         });
     }
     return loadPromise;
+  }
+
+  async function loadMusicBuffer(ctx) {
+    if (!ctx || !resolvedMusicSources.length) {
+      return null;
+    }
+    if (musicBuffer) {
+      return musicBuffer;
+    }
+    if (!musicLoadPromise) {
+      musicLoadPromise = (async () => {
+        for (const source of resolvedMusicSources) {
+          if (!source) {
+            continue;
+          }
+          try {
+            const response = await fetch(source, { cache: 'no-store' });
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = await ctx.decodeAudioData(arrayBuffer);
+            musicBuffer = buffer;
+            return buffer;
+          } catch (error) {
+            console.warn(`HackType: muziekbron ${source} laden mislukt.`, error);
+          }
+        }
+        throw new Error('Geen geldige muziekbron gevonden.');
+      })().catch((error) => {
+        console.warn('HackType: achtergrondmuziek laden faalde.', error);
+        musicLoadPromise = null;
+        throw error;
+      });
+    }
+    return musicLoadPromise;
   }
 
   async function playCue(name) {
@@ -159,19 +278,85 @@ export function createAudioController({
     });
   }
 
+  async function startBackgroundMusicInternal() {
+    if (!enabled) {
+      return;
+    }
+    const ctx = ensureContext();
+    if (!ctx) {
+      return;
+    }
+    const gain = ensureMusicGain(ctx);
+    if (!gain) {
+      return;
+    }
+    try {
+      const buffer = await loadMusicBuffer(ctx);
+      if (!buffer) {
+        return;
+      }
+      stopMusicNode();
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.onended = () => {
+        if (musicSourceNode === source) {
+          musicSourceNode = null;
+        }
+      };
+      source.connect(gain);
+      const startOffset = buffer.duration > 0
+        ? Math.max(0, musicOffset % buffer.duration)
+        : 0;
+      musicStartedAt = ctx.currentTime - startOffset;
+      source.start(0, startOffset);
+      musicSourceNode = source;
+    } catch (error) {
+      console.warn('HackType: achtergrondmuziek starten faalde.', error);
+    }
+  }
+
+  function pauseBackgroundMusicInternal() {
+    if (!context || !musicSourceNode) {
+      return;
+    }
+    if (musicBuffer) {
+      const elapsed = Math.max(0, context.currentTime - musicStartedAt);
+      const duration = Math.max(musicBuffer.duration, 0.0001);
+      musicOffset = elapsed % duration;
+    } else {
+      musicOffset = 0;
+    }
+    stopMusicNode();
+  }
+
+  function stopBackgroundMusicInternal() {
+    pauseBackgroundMusicInternal();
+    musicOffset = 0;
+  }
+
   return {
     unlock() {
       if (!supportsAudio) {
         return;
       }
-      ensureContext();
+      const ctx = ensureContext();
       loadPresets().catch(() => {});
+      if (ctx) {
+        loadMusicBuffer(ctx).catch(() => {});
+      }
     },
     setEnabled(value) {
       enabled = Boolean(value);
-      if (!enabled && context && context.state === 'running') {
-        context.suspend().catch(() => {});
-      } else if (enabled) {
+      if (!enabled) {
+        if (context && context.state === 'running') {
+          context.suspend().catch(() => {});
+        }
+        if (context) {
+          pauseBackgroundMusicInternal();
+          musicOffset = 0;
+        }
+      } else {
         ensureContext();
       }
     },
@@ -186,6 +371,18 @@ export function createAudioController({
     },
     playLevelUp() {
       playCue('level_up');
+    },
+    startBackgroundMusic() {
+      return startBackgroundMusicInternal();
+    },
+    pauseBackgroundMusic() {
+      pauseBackgroundMusicInternal();
+    },
+    stopBackgroundMusic() {
+      stopBackgroundMusicInternal();
+    },
+    isBackgroundMusicLoaded() {
+      return Boolean(musicBuffer);
     }
   };
 }

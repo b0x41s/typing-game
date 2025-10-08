@@ -155,6 +155,19 @@
               <span class="value" id="stat-acc">100%</span>
             </div>
           </div>
+          <div class="combo-meter" id="combo-meter" role="status" aria-live="polite">
+            <div class="combo-header">
+              <span class="label">Combo</span>
+              <span class="value" id="combo-multiplier">x1.0</span>
+            </div>
+            <div class="combo-bar" aria-hidden="true">
+              <div class="combo-bar-fill" id="combo-meter-fill"></div>
+            </div>
+            <p class="combo-detail">
+              <span id="combo-streak">Geen streak actief</span>
+              <span id="combo-next">Boost over 3</span>
+            </p>
+          </div>
           <p id="caps-warning" class="caps" role="alert" aria-live="assertive" hidden>Caps Lock staat aan.</p>
         </header>
 
@@ -171,8 +184,14 @@
           <input id="command-input" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" disabled>
         </div>
 
-        <footer class="game-footer" role="status" aria-live="polite">
-          <p class="hint" id="play-hint">Blijf typen tot het commando compleet is.</p>
+        <footer class="game-footer">
+          <div class="hint-bar" role="status" aria-live="polite">
+            <p class="hint" id="play-hint">Blijf typen tot het commando compleet is.</p>
+            <p class="hint-tier" id="hint-tier">Volgende hint onthult het eerste token.</p>
+          </div>
+          <button type="button" class="btn btn-hint" data-action="request-hint" aria-describedby="hint-tier">
+            Hint <span class="hint-tokens" id="hint-tokens">3</span>
+          </button>
         </footer>
       </div>
     </section>
@@ -197,9 +216,12 @@
         </dl>
         <div class="breakdown">
           <p><span class="label">Basispunten:</span> <span id="result-base">0</span></p>
+          <p><span class="label">Combo boost:</span> <span id="result-combo">0</span></p>
           <p><span class="label">Tijdbonus:</span> <span id="result-bonus">0</span></p>
+          <p><span class="label">Hintpenalty:</span> <span id="result-hint-penalty">0</span></p>
           <p><span class="label">Foutpenalty:</span> <span id="result-penalty">0</span></p>
         </div>
+        <p class="result-tip" id="result-tip"></p>
         <div class="result-actions">
           <button type="button" class="btn btn-primary" data-action="restart">Opnieuw spelen</button>
           <button type="button" class="btn" data-action="back-to-start">Terug naar start</button>

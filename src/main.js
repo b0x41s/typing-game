@@ -146,6 +146,27 @@ async function bootstrap() {
   }
   const animations = createAnimationController();
 
+  function bindFirstInteractionUnlock() {
+    let handled = false;
+    function handle() {
+      if (handled) {
+        return;
+      }
+      handled = true;
+      audio.unlock();
+      audio.startBackgroundMusic();
+    }
+    const onceListener = () => {
+      document.removeEventListener('pointerdown', onceListener);
+      document.removeEventListener('keydown', onceListener);
+      handle();
+    };
+    document.addEventListener('pointerdown', onceListener, { once: true, passive: true });
+    document.addEventListener('keydown', onceListener, { once: true });
+  }
+
+  bindFirstInteractionUnlock();
+
   let coreLoop;
 
   const onboarding = createOnboarding({

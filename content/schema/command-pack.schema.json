@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hacktype.tex-tribe/schema/command-pack.schema.json",
+  "title": "HackType command pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["packId", "title", "summary", "difficulty", "commands"],
+  "properties": {
+    "packId": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 2,
+      "maxLength": 32
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 280
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["beginner", "intermediate", "advanced", "mixed"]
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/command"
+      }
+    }
+  },
+  "$defs": {
+    "tag": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 2,
+      "maxLength": 32
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "command", "description", "mock_output", "accepted_variants", "tags"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 2,
+          "maxLength": 48
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "description_long": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 480
+        },
+        "mock_output": {
+          "type": "string"
+        },
+        "accepted_variants": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "uniqueItems": true
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tag"
+          },
+          "uniqueItems": true
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"]
+        }
+      }
+    }
+  }
+}

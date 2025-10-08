@@ -21,6 +21,10 @@ const DEFAULT_CONFIG = Object.freeze({
     perError: 15,
     // Never allow the penalty to nuke more than half of the base score.
     maxShareOfBase: 0.5
+  },
+  hintPenalty: {
+    perHint: 25,
+    maxShareOfBase: 0.3
   }
 });
 
@@ -47,15 +51,24 @@ function clamp(value, min, max) {
  */
 function normaliseStats(raw) {
   if (!raw || typeof raw !== 'object') {
-    return { completedCommands: 0, elapsedSeconds: 0, totalSeconds: 60, errors: 0 };
+    return {
+      completedCommands: 0,
+      elapsedSeconds: 0,
+      totalSeconds: 60,
+      errors: 0,
+      basePoints: 0,
+      hintCount: 0
+    };
   }
 
   const completedCommands = Math.max(0, Math.floor(Number(raw.completedCommands) || 0));
   const elapsedSeconds = Math.max(0, Number(raw.elapsedSeconds) || 0);
   const totalSeconds = Math.max(elapsedSeconds, Number(raw.totalSeconds) || elapsedSeconds || 60);
   const errors = Math.max(0, Math.floor(Number(raw.errors) || 0));
+  const basePoints = Math.max(0, Number(raw.basePoints) || 0);
+  const hintCount = Math.max(0, Math.floor(Number(raw.hintCount) || 0));
 
-  return { completedCommands, elapsedSeconds, totalSeconds, errors };
+  return { completedCommands, elapsedSeconds, totalSeconds, errors, basePoints, hintCount };
 }
 
 /**
@@ -78,9 +91,17 @@ function normaliseStats(raw) {
  * }}
  */
 export function calculateScore(stats, config = DEFAULT_CONFIG) {
-  const { completedCommands, elapsedSeconds, totalSeconds, errors } = normaliseStats(stats);
+  const {
+    completedCommands,
+    elapsedSeconds,
+    totalSeconds,
+    errors,
+    basePoints,
+    hintCount
+  } = normaliseStats(stats);
   const cfg = { ...DEFAULT_CONFIG, ...config };
-  const base = completedCommands * cfg.baseCommandPoints;
+  const calculatedBase = completedCommands * cfg.baseCommandPoints;
+  const base = basePoints > 0 ? basePoints : calculatedBase;
 
   const remainingSeconds = clamp(totalSeconds - elapsedSeconds, 0, totalSeconds);
   const timeBonus = clamp(
@@ -93,14 +114,20 @@ export function calculateScore(stats, config = DEFAULT_CONFIG) {
   const maxPenalty = base * cfg.errorPenalty.maxShareOfBase;
   const errorPenalty = clamp(rawErrorPenalty, 0, maxPenalty);
 
-  const total = Math.max(0, Math.round(base + timeBonus - errorPenalty));
+  const rawHintPenalty = hintCount * cfg.hintPenalty.perHint;
+  const maxHintPenalty = base * cfg.hintPenalty.maxShareOfBase;
+  const hintPenalty = clamp(rawHintPenalty, 0, maxHintPenalty);
+
+  const totalPenalty = Math.min(base, errorPenalty + hintPenalty);
+  const total = Math.max(0, Math.round(base + timeBonus - totalPenalty));
 
   return {
     total,
     base,
     timeBonus,
     penalties: {
-      errors: errorPenalty
+      errors: errorPenalty,
+      hints: hintPenalty
     }
   };
 }
@@ -117,6 +144,8 @@ export function createScoringSession(config = DEFAULT_CONFIG) {
   let completedCommands = 0;
   let errors = 0;
   let elapsedSeconds = 0;
+  let basePoints = 0;
+  let hintCount = 0;
 
   return Object.freeze({
     /**
@@ -130,6 +159,10 @@ export function createScoringSession(config = DEFAULT_CONFIG) {
     addCommand(result = {}) {
       if (result.completed) {
         completedCommands += 1;
+        const multiplier = Number.isFinite(result.baseMultiplier)
+          ? Math.max(1, result.baseMultiplier)
+          : 1;
+        basePoints += cfg.baseCommandPoints * multiplier;
       }
       if (Number.isFinite(result.errors)) {
         errors += Math.max(0, Math.floor(result.errors));
@@ -137,6 +170,13 @@ export function createScoringSession(config = DEFAULT_CONFIG) {
       if (Number.isFinite(result.durationSeconds)) {
         elapsedSeconds += Math.max(0, result.durationSeconds);
       }
+    },
+
+    registerHint(useCount = 1) {
+      if (!Number.isFinite(useCount)) {
+        return;
+      }
+      hintCount += Math.max(0, Math.floor(useCount));
     },
 
     /**
@@ -150,7 +190,9 @@ export function createScoringSession(config = DEFAULT_CONFIG) {
           completedCommands,
           errors,
           elapsedSeconds,
-          totalSeconds: summary.totalSeconds ?? summary.durationSeconds ?? summary.roundSeconds
+          totalSeconds: summary.totalSeconds ?? summary.durationSeconds ?? summary.roundSeconds,
+          basePoints,
+          hintCount
         },
         cfg
       );

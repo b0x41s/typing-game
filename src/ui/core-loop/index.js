@@ -1,4 +1,4 @@
-import { createScoringSession } from '../../logic/scoring.js';
+import { createScoringSession, SCORING_DEFAULTS } from '../../logic/scoring.js';
 import {
   evaluateTyping,
   countCommandErrors,
@@ -11,6 +11,14 @@ import { recordScore, getProgress, getPackStats, setLastPackId } from '../../sto
 const numberFormatter = new Intl.NumberFormat('nl-NL');
 
 const LEVEL_UP_THRESHOLD = 5;
+const COMBO_LEVELS = Object.freeze([
+  { threshold: 0, multiplier: 1, label: 'x1.0' },
+  { threshold: 3, multiplier: 1.5, label: 'x1.5' },
+  { threshold: 6, multiplier: 2, label: 'x2.0' },
+  { threshold: 10, multiplier: 2.5, label: 'x2.5' }
+]);
+const MAX_HINT_TOKENS = 3;
+const HINT_STEPS = Object.freeze(['token', 'flag', 'character']);
 
 function formatNumber(value) {
   return numberFormatter.format(Math.max(0, Math.floor(value)));
@@ -34,6 +42,34 @@ function shuffle(array) {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
+}
+
+function resolveComboLevel(streak) {
+  const safeStreak = Math.max(0, Math.floor(streak));
+  let levelIndex = 0;
+  for (let i = 0; i < COMBO_LEVELS.length; i += 1) {
+    if (safeStreak >= COMBO_LEVELS[i].threshold) {
+      levelIndex = i;
+    } else {
+      break;
+    }
+  }
+  const level = COMBO_LEVELS[levelIndex];
+  const nextLevel = COMBO_LEVELS[levelIndex + 1] ?? null;
+  const span = nextLevel ? nextLevel.threshold - level.threshold : 1;
+  const progress = nextLevel
+    ? Math.min(1, Math.max(0, (safeStreak - level.threshold) / span))
+    : 1;
+  const toNext = nextLevel ? Math.max(0, nextLevel.threshold - safeStreak) : 0;
+  return {
+    levelIndex,
+    threshold: level.threshold,
+    multiplier: level.multiplier,
+    label: level.label,
+    progress,
+    toNext,
+    nextThreshold: nextLevel?.threshold ?? null
+  };
 }
 
 export function createCoreLoop({
@@ -68,11 +104,19 @@ export function createCoreLoop({
   const commandDisplayEl = playScreen.querySelector('#command-display');
   const inputEl = playScreen.querySelector('#command-input');
   const hintEl = playScreen.querySelector('#play-hint');
+  const hintTierEl = playScreen.querySelector('#hint-tier');
+  const hintTokensEl = playScreen.querySelector('#hint-tokens');
+  const hintButton = playScreen.querySelector('[data-action="request-hint"]');
   const capsWarningEl = playScreen.querySelector('#caps-warning');
   const statsTimeEl = playScreen.querySelector('#stat-time');
   const statsCommandsEl = playScreen.querySelector('#stat-commands');
   const statsWpmEl = playScreen.querySelector('#stat-wpm');
   const statsAccEl = playScreen.querySelector('#stat-acc');
+  const comboMeterEl = playScreen.querySelector('#combo-meter');
+  const comboMultiplierEl = playScreen.querySelector('#combo-multiplier');
+  const comboStreakEl = playScreen.querySelector('#combo-streak');
+  const comboNextEl = playScreen.querySelector('#combo-next');
+  const comboMeterFillEl = playScreen.querySelector('#combo-meter-fill');
 
   const resultScoreEl = resultsScreen.querySelector('#result-score');
   const resultCommandsEl = resultsScreen.querySelector('#result-commands');
@@ -81,6 +125,9 @@ export function createCoreLoop({
   const resultBaseEl = resultsScreen.querySelector('#result-base');
   const resultBonusEl = resultsScreen.querySelector('#result-bonus');
   const resultPenaltyEl = resultsScreen.querySelector('#result-penalty');
+  const resultComboEl = resultsScreen.querySelector('#result-combo');
+  const resultHintPenaltyEl = resultsScreen.querySelector('#result-hint-penalty');
+  const resultTipEl = resultsScreen.querySelector('#result-tip');
   const restartButton = resultsScreen.querySelector('[data-action="restart"]');
   const backButton = resultsScreen.querySelector('[data-action="back-to-start"]');
 
@@ -105,8 +152,243 @@ export function createCoreLoop({
     lastInputLength: 0,
     currentCommandTyped: 0,
     errorActive: false,
-    loadingPack: false
+    loadingPack: false,
+    comboStreak: 0,
+    comboBestStreak: 0,
+    comboLevelIndex: 0,
+    comboMultiplier: 1,
+    comboProgress: 0,
+    comboToNext: 0,
+    comboLevelChanged: false,
+    hintTokens: MAX_HINT_TOKENS,
+    hintsUsed: 0,
+    commandHintsUsed: 0,
+    commandHintStage: 0
   };
+
+  resetComboState();
+  resetHintState();
+  resetCommandHintState();
+
+  function resetComboState() {
+    state.comboStreak = 0;
+    state.comboBestStreak = 0;
+    const level = resolveComboLevel(0);
+    state.comboLevelIndex = level.levelIndex;
+    state.comboMultiplier = level.multiplier;
+    state.comboProgress = level.progress;
+    state.comboToNext = level.toNext;
+    state.comboLevelChanged = false;
+    updateComboMeter(level);
+  }
+
+  function applyComboResult({ perfect, previousLevelIndex = state.comboLevelIndex }) {
+    if (perfect) {
+      state.comboStreak += 1;
+      state.comboBestStreak = Math.max(state.comboBestStreak, state.comboStreak);
+    } else {
+      state.comboStreak = 0;
+    }
+    const level = resolveComboLevel(state.comboStreak);
+    const levelChanged = level.levelIndex !== previousLevelIndex;
+    state.comboLevelIndex = level.levelIndex;
+    state.comboMultiplier = level.multiplier;
+    state.comboProgress = level.progress;
+    state.comboToNext = level.toNext;
+    state.comboLevelChanged = levelChanged;
+    updateComboMeter(level, { perfect, levelChanged });
+    return { ...level, levelChanged };
+  }
+
+  function resetHintState() {
+    state.hintTokens = MAX_HINT_TOKENS;
+    state.hintsUsed = 0;
+    state.commandHintsUsed = 0;
+    state.commandHintStage = 0;
+    updateHintControls();
+  }
+
+  function resetCommandHintState() {
+    state.commandHintsUsed = 0;
+    state.commandHintStage = 0;
+    updateHintControls();
+  }
+
+  function useHintToken() {
+    if (state.hintTokens <= 0) {
+      return false;
+    }
+    state.hintTokens -= 1;
+    state.hintsUsed += 1;
+    state.commandHintsUsed += 1;
+    state.commandHintStage += 1;
+    if (state.scoringSession && typeof state.scoringSession.registerHint === 'function') {
+      state.scoringSession.registerHint();
+    }
+    return true;
+  }
+
+  function formatHintPreview(type) {
+    switch (type) {
+      case 'token':
+        return 'Volgende hint onthult het eerste token.';
+      case 'flag':
+        return 'Volgende hint markeert de belangrijkste flag.';
+      case 'character':
+        return 'Volgende hint verklapt het volgende teken.';
+      default:
+        return 'Geen hints meer beschikbaar voor dit commando.';
+    }
+  }
+
+  function formatCharacterLabel(char) {
+    if (!char) {
+      return 'einde van het commando';
+    }
+    if (char === ' ') {
+      return 'een spatie';
+    }
+    if (char === '\t') {
+      return 'een tab';
+    }
+    if (char === '\n') {
+      return 'een newline';
+    }
+    return `"${char}"`;
+  }
+
+  function describeFlagHint(command) {
+    const tokens = command.split(/\s+/).filter(Boolean);
+    const flag = tokens.find((token) => token.startsWith('-'));
+    if (!flag) {
+      return 'Hint: Geen flags aanwezig, focus op pad of argumenten.';
+    }
+    return `Hint: De belangrijkste flag is "${flag}".`;
+  }
+
+  function describeTokenHint(command) {
+    const tokens = command.split(/\s+/).filter(Boolean);
+    const first = tokens[0] ?? '';
+    if (!first) {
+      return 'Hint: Commando start direct met een pad.';
+    }
+    return `Hint: Start met "${first}".`;
+  }
+
+  function describeCharacterHint(commandEntry, typed) {
+    if (!commandEntry) {
+      return 'Hint: Geen commando actief.';
+    }
+    const evaluation = evaluateTyping(commandEntry, typed);
+    const target = evaluation.target ?? commandEntry.command ?? '';
+    if (!target) {
+      return 'Hint: Controleer de weergave hierboven.';
+    }
+    if (!evaluation.isPrefix) {
+      return 'Hint: Corrigeer eerst de foutieve letter, daarna volgt de reveal.';
+    }
+    const index = typed.length;
+    const nextChar = target[index] ?? '';
+    const label = formatCharacterLabel(nextChar);
+    return `Hint: Volgende teken is ${label}.`;
+  }
+
+  function updateHintControls() {
+    if (hintTokensEl) {
+      hintTokensEl.textContent = formatNumber(state.hintTokens);
+    }
+    if (hintTierEl) {
+      if (!state.runActive) {
+        hintTierEl.textContent = 'Hints verschijnen zodra de run loopt.';
+      } else if (state.hintTokens <= 0) {
+        hintTierEl.textContent = 'Geen hint tokens meer in deze run.';
+      } else if (state.commandHintStage >= HINT_STEPS.length) {
+        hintTierEl.textContent = 'Alle hintfasen voor dit commando zijn gebruikt.';
+      } else {
+        const nextType = HINT_STEPS[state.commandHintStage];
+        hintTierEl.textContent = formatHintPreview(nextType);
+      }
+    }
+    if (hintButton) {
+      const disabled = !state.runActive
+        || state.hintTokens <= 0
+        || state.commandHintStage >= HINT_STEPS.length;
+      hintButton.disabled = disabled;
+      hintButton.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    }
+  }
+
+  function handleHintRequest() {
+    if (!state.runActive || !state.currentCommand) {
+      hintEl.textContent = 'Hints zijn alleen beschikbaar tijdens een actieve run.';
+      announce?.('Hints zijn alleen beschikbaar tijdens een actieve run.');
+      updateHintControls();
+      return;
+    }
+    if (state.hintTokens <= 0) {
+      hintEl.textContent = 'Geen hint tokens meer. Volgende run reset ze.';
+      announce?.('Geen hint tokens meer in deze run.');
+      updateHintControls();
+      return;
+    }
+    if (state.commandHintStage >= HINT_STEPS.length) {
+      hintEl.textContent = 'Alle hintfasen voor dit commando zijn gebruikt.';
+      announce?.('Alle hintfasen voor dit commando zijn gebruikt.');
+      updateHintControls();
+      return;
+    }
+
+    const hintIndex = state.commandHintStage;
+    const hintType = HINT_STEPS[hintIndex];
+    if (!hintType) {
+      hintEl.textContent = 'Geen hints meer beschikbaar.';
+      updateHintControls();
+      return;
+    }
+
+    if (!useHintToken()) {
+      hintEl.textContent = 'Geen hint tokens meer. Volgende run reset ze.';
+      updateHintControls();
+      return;
+    }
+
+    let message;
+    const commandText = state.currentCommand.command ?? '';
+    switch (hintType) {
+      case 'token':
+        message = describeTokenHint(commandText);
+        break;
+      case 'flag':
+        message = describeFlagHint(commandText);
+        break;
+      case 'character':
+        message = describeCharacterHint(state.currentCommand, inputEl.value);
+        break;
+      default:
+        message = 'Hint: Geen extra hulp beschikbaar.';
+        break;
+    }
+
+    hintEl.textContent = message;
+    announce?.(message);
+    updateHintControls();
+  }
+
+  function pickResultTip(summary) {
+    if (summary.accuracy < 90) {
+      return 'Tip: Verlaag het tempo iets en mik op foutloze invoer tot je weer boven 95% accuracy zit.';
+    }
+    if (summary.hintsUsed >= 2) {
+      return 'Tip: Lees de beschrijving en output nog eens rustig door zodat je minder hints hoeft te verbranden.';
+    }
+    if (summary.comboBestStreak >= 6 && summary.hintsUsed === 0) {
+      return 'Tip: Ga voor een streak van tien perfecte commands om de x2.5 combo vrij te spelen.';
+    }
+    if (summary.completedCommands < 10) {
+      return 'Tip: Bouw eerst richting tien afgeronde commands per run voor een stabiele basis.';
+    }
+    return 'Tip: Houd streaks van drie perfects vast om de x1.5 combo permanent actief te houden.';
+  }
 
   function populatePackSelect() {
     if (!packSelectEl) {
@@ -333,6 +615,42 @@ export function createCoreLoop({
     statsWpmEl.textContent = formatNumber(formatWpm(state.correctChars, elapsedSeconds));
   }
 
+  function updateComboMeter(levelInfo, { levelChanged } = {}) {
+    if (!comboMeterEl) {
+      return;
+    }
+    const level = levelInfo ?? resolveComboLevel(state.comboStreak);
+    const label = level.label ?? `x${level.multiplier.toFixed(level.multiplier % 1 === 0 ? 0 : 1)}`;
+    if (comboMultiplierEl) {
+      comboMultiplierEl.textContent = label;
+    }
+    if (comboStreakEl) {
+      comboStreakEl.textContent = state.comboStreak > 0
+        ? `${formatNumber(state.comboStreak)} perfecte commands`
+        : 'Geen streak actief';
+    }
+    if (comboNextEl) {
+      if (level.nextThreshold === null) {
+        comboNextEl.textContent = 'Maximale boost actief';
+      } else if (level.toNext <= 0) {
+        comboNextEl.textContent = 'Boost unlocked';
+      } else {
+        comboNextEl.textContent = `Boost over ${formatNumber(level.toNext)}`;
+      }
+    }
+    if (comboMeterFillEl) {
+      const width = Math.round(level.progress * 100);
+      comboMeterFillEl.style.width = `${width}%`;
+    }
+    comboMeterEl.dataset.comboLevel = String(level.levelIndex);
+    if (levelChanged) {
+      comboMeterEl.classList.add('combo-meter-level-up');
+      window.setTimeout(() => {
+        comboMeterEl.classList.remove('combo-meter-level-up');
+      }, 400);
+    }
+  }
+
   function renderCommandProgress(typedValue) {
     const evaluation = evaluateTyping(state.currentCommand, typedValue);
     state.currentTarget = evaluation.target;
@@ -368,6 +686,7 @@ export function createCoreLoop({
     state.lastInputLength = 0;
     state.errorActive = false;
     state.commandStartedAt = performance.now();
+    resetCommandHintState();
     inputEl.disabled = false;
     inputEl.value = '';
     inputEl.classList.remove('input-error');
@@ -396,6 +715,7 @@ export function createCoreLoop({
     state.runActive = false;
     state.runFinished = true;
     enablePackSelection();
+    updateHintControls();
 
     inputEl.disabled = true;
     inputEl.blur();
@@ -405,6 +725,9 @@ export function createCoreLoop({
     const elapsedSeconds = Math.min(durationSeconds, state.elapsed);
     const accuracy = formatAccuracy(state.correctChars, state.totalTyped);
     const score = state.scoringSession.finalise({ totalSeconds: durationSeconds });
+    const baseWithoutCombo = state.completedCommands * SCORING_DEFAULTS.baseCommandPoints;
+    const comboBoost = Math.max(0, Math.round(score.base - baseWithoutCombo));
+    const hintPenalty = score.penalties?.hints ?? 0;
     const activePackId = state.pack?.packId ?? null;
     const record = recordScore({
       modeId: 'core',
@@ -425,8 +748,18 @@ export function createCoreLoop({
     resultAccEl.textContent = `${accuracy}%`;
     resultHighscoreEl.textContent = formatNumber(packBest);
     resultBaseEl.textContent = formatNumber(score.base);
+    resultComboEl.textContent = formatNumber(comboBoost);
     resultBonusEl.textContent = formatNumber(score.timeBonus);
+    resultHintPenaltyEl.textContent = formatNumber(hintPenalty);
     resultPenaltyEl.textContent = formatNumber(score.penalties.errors);
+    if (resultTipEl) {
+      resultTipEl.textContent = pickResultTip({
+        accuracy,
+        hintsUsed: state.hintsUsed,
+        comboBestStreak: state.comboBestStreak,
+        completedCommands: state.completedCommands
+      });
+    }
 
     announce?.(`Run klaar. Score ${score.total}. Accuracy ${accuracy} procent.`);
     showScreen('results');
@@ -485,6 +818,8 @@ export function createCoreLoop({
     state.lastInputLength = 0;
     state.currentCommandTyped = 0;
     state.errorActive = false;
+    resetComboState();
+    resetHintState();
 
     statsTimeEl.textContent = `${durationSeconds}s`;
     statsCommandsEl.textContent = '0';
@@ -504,6 +839,7 @@ export function createCoreLoop({
     }
     resetRunState();
     audio?.unlock();
+    audio?.startBackgroundMusic();
     showScreen('play');
     prepareNextCommand();
     inputEl.disabled = false;
@@ -545,17 +881,23 @@ export function createCoreLoop({
       const durationSeconds = state.commandStartedAt
         ? Math.max(0, (performance.now() - state.commandStartedAt) / 1000)
         : 0;
+      const previousLevelIndex = state.comboLevelIndex;
+      const perfectCommand = commandErrors === 0 && state.commandHintsUsed === 0;
+      const comboLevel = applyComboResult({ perfect: perfectCommand, previousLevelIndex });
 
       state.scoringSession.addCommand({
         completed: true,
         errors: commandErrors,
-        durationSeconds
+        durationSeconds,
+        baseMultiplier: comboLevel.multiplier
       });
 
       state.errorActive = false;
       audio?.playCorrect();
       animations?.playSuccess(commandDisplayEl);
-      if (state.completedCommands > 0 && state.completedCommands % LEVEL_UP_THRESHOLD === 0) {
+      if (comboLevel.levelChanged && perfectCommand) {
+        audio?.playLevelUp();
+      } else if (state.completedCommands > 0 && state.completedCommands % LEVEL_UP_THRESHOLD === 0) {
         audio?.playLevelUp();
       }
 
@@ -590,6 +932,7 @@ export function createCoreLoop({
 
     showScreen('start');
     const title = state.pack?.title ?? state.pack?.packId ?? 'HackType pack';
+    audio?.startBackgroundMusic();
     announce?.(`Pack geladen: ${title}. Klaar om te starten.`);
   }
 
@@ -616,6 +959,7 @@ export function createCoreLoop({
   restartButton.addEventListener('click', handleRestart);
   backButton.addEventListener('click', handleBackToStart);
   inputEl.addEventListener('input', handleInput);
+  hintButton?.addEventListener('click', handleHintRequest);
 
   document.addEventListener('keydown', updateCapsState);
   document.addEventListener('keyup', updateCapsState);
@@ -630,9 +974,13 @@ export function createCoreLoop({
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       pauseTimer();
+      audio?.pauseBackgroundMusic();
     } else if (document.visibilityState === 'visible' && state.runActive) {
       state.startedAt = performance.now();
       startTimer();
+      audio?.startBackgroundMusic();
+    } else if (document.visibilityState === 'visible') {
+      audio?.startBackgroundMusic();
     }
   });
 
