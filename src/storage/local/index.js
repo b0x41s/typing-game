@@ -15,7 +15,8 @@ const DEFAULT_STATE = Object.freeze({
   progress: {
     tutorialCompleted: false,
     lastPackId: null,
-    packStats: {}
+    packStats: {},
+    audioEnabled: true
   }
 });
 
@@ -28,7 +29,8 @@ function createDefaultState() {
     progress: {
       tutorialCompleted: DEFAULT_STATE.progress.tutorialCompleted,
       lastPackId: DEFAULT_STATE.progress.lastPackId,
-      packStats: {}
+      packStats: {},
+      audioEnabled: DEFAULT_STATE.progress.audioEnabled
     }
   };
 }
@@ -49,7 +51,8 @@ function cloneState(state) {
             bestScore: Math.max(0, Math.floor(Number(stats.bestScore) || 0))
           }
         ])
-      )
+      ),
+      audioEnabled: state.progress?.audioEnabled !== false
     }
   };
 }
@@ -132,7 +135,8 @@ function normaliseState(rawState) {
   const safeProgress = {
     tutorialCompleted: Boolean(rawState.progress?.tutorialCompleted),
     lastPackId: rawState.progress?.lastPackId ?? base.progress.lastPackId,
-    packStats: {}
+    packStats: {},
+    audioEnabled: rawState.progress?.audioEnabled !== false
   };
 
   const packStats = rawState.progress?.packStats;
@@ -213,6 +217,19 @@ export function getProgress() {
     highScores: {},
     progress: state.progress
   }).progress;
+}
+
+export function getAudioEnabled() {
+  return readState().progress.audioEnabled !== false;
+}
+
+export function setAudioEnabled(value) {
+  const enabled = value !== false;
+  const updated = updateState((state) => {
+    state.progress.audioEnabled = enabled;
+    return state;
+  });
+  return updated.progress.audioEnabled !== false;
 }
 
 export function markTutorialCompleted() {
