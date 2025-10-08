@@ -144,12 +144,13 @@ export function createAudioController({
   let musicLoadPromise = null;
   let musicOffset = 0;
   let musicStartedAt = 0;
-  let enabled = true;
+  let effectsEnabled = true;
+  let musicEnabled = true;
   let loadedPresets = null;
   let loadPromise = null;
 
   function ensureContext() {
-    if (!supportsAudio || !enabled) {
+    if (!supportsAudio || (!effectsEnabled && !musicEnabled)) {
       return null;
     }
     if (!context) {
@@ -255,7 +256,7 @@ export function createAudioController({
   }
 
   async function playCue(name) {
-    if (!enabled || !supportsAudio) {
+    if (!supportsAudio || !effectsEnabled) {
       return;
     }
     const ctx = ensureContext();
@@ -279,7 +280,7 @@ export function createAudioController({
   }
 
   async function startBackgroundMusicInternal() {
-    if (!enabled) {
+    if (!musicEnabled) {
       return;
     }
     const ctx = ensureContext();
@@ -335,6 +336,33 @@ export function createAudioController({
     musicOffset = 0;
   }
 
+  function applyEffectsEnabled(value) {
+    effectsEnabled = Boolean(value);
+    if (!effectsEnabled && !musicEnabled) {
+      if (context && context.state === 'running') {
+        context.suspend().catch(() => {});
+      }
+      if (context) {
+        pauseBackgroundMusicInternal();
+        musicOffset = 0;
+      }
+    } else {
+      ensureContext();
+    }
+  }
+
+  function applyMusicEnabled(value) {
+    musicEnabled = Boolean(value);
+    if (!musicEnabled) {
+      stopBackgroundMusicInternal();
+      if (!effectsEnabled && context && context.state === 'running') {
+        context.suspend().catch(() => {});
+      }
+    } else {
+      ensureContext();
+    }
+  }
+
   return {
     unlock() {
       if (!supportsAudio) {
@@ -347,21 +375,24 @@ export function createAudioController({
       }
     },
     setEnabled(value) {
-      enabled = Boolean(value);
-      if (!enabled) {
-        if (context && context.state === 'running') {
-          context.suspend().catch(() => {});
-        }
-        if (context) {
-          pauseBackgroundMusicInternal();
-          musicOffset = 0;
-        }
-      } else {
-        ensureContext();
-      }
+      const next = Boolean(value);
+      applyEffectsEnabled(next);
+      applyMusicEnabled(next);
     },
     isEnabled() {
-      return enabled;
+      return effectsEnabled || musicEnabled;
+    },
+    setEffectsEnabled(value) {
+      applyEffectsEnabled(value);
+    },
+    areEffectsEnabled() {
+      return effectsEnabled;
+    },
+    setMusicEnabled(value) {
+      applyMusicEnabled(value);
+    },
+    isMusicEnabled() {
+      return musicEnabled;
     },
     playCorrect() {
       playCue('correct');

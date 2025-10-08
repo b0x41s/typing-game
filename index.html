@@ -12,10 +12,16 @@
     <header class="top">
       <div class="top-line">
         <h1 id="page-title">HackType</h1>
-        <button type="button" class="audio-toggle" data-action="toggle-audio" aria-pressed="true">
-          <span class="audio-toggle-icon" aria-hidden="true">🔊</span>
-          <span class="audio-toggle-label" data-audio-label>Geluid aan</span>
-        </button>
+        <div class="audio-toggle-group" role="group" aria-label="Audio">
+          <button type="button" class="audio-toggle" data-action="toggle-music" aria-pressed="true">
+            <span class="audio-toggle-icon" aria-hidden="true">🎵</span>
+            <span class="audio-toggle-label" data-music-label>Muziek aan</span>
+          </button>
+          <button type="button" class="audio-toggle" data-action="toggle-effects" aria-pressed="true">
+            <span class="audio-toggle-icon" aria-hidden="true">🎯</span>
+            <span class="audio-toggle-label" data-effects-label>Effecten aan</span>
+          </button>
+        </div>
       </div>
       <p class="tagline">60 seconden pure focus zoals in de Tex-Tribe war room.</p>
     </header>

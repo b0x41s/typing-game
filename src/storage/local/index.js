@@ -9,6 +9,11 @@
 
 const STORAGE_KEY = "hacktype::v1::profile";
 
+const DEFAULT_AUDIO_PREFS = Object.freeze({
+  musicEnabled: true,
+  effectsEnabled: true
+});
+
 const DEFAULT_STATE = Object.freeze({
   version: 1,
   highScores: {},
@@ -16,11 +21,46 @@ const DEFAULT_STATE = Object.freeze({
     tutorialCompleted: false,
     lastPackId: null,
     packStats: {},
-    audioEnabled: true
+    audio: DEFAULT_AUDIO_PREFS
   }
 });
 
 let memoryState = createDefaultState();
+
+function createDefaultAudioPrefs() {
+  return {
+    musicEnabled: DEFAULT_AUDIO_PREFS.musicEnabled,
+    effectsEnabled: DEFAULT_AUDIO_PREFS.effectsEnabled
+  };
+}
+
+function resolveAudioPrefs(progress) {
+  if (progress && typeof progress === "object") {
+    const rawAudio = progress.audio;
+    if (rawAudio && typeof rawAudio === "object") {
+      return {
+        musicEnabled: rawAudio.musicEnabled !== false,
+        effectsEnabled: rawAudio.effectsEnabled !== false
+      };
+    }
+    if ("audioEnabled" in progress) {
+      const legacy = progress.audioEnabled !== false;
+      return {
+        musicEnabled: legacy,
+        effectsEnabled: legacy
+      };
+    }
+  }
+  return createDefaultAudioPrefs();
+}
+
+function cloneAudioPrefs(progress) {
+  const prefs = resolveAudioPrefs(progress);
+  return {
+    musicEnabled: prefs.musicEnabled,
+    effectsEnabled: prefs.effectsEnabled
+  };
+}
 
 function createDefaultState() {
   return {
@@ -30,7 +70,7 @@ function createDefaultState() {
       tutorialCompleted: DEFAULT_STATE.progress.tutorialCompleted,
       lastPackId: DEFAULT_STATE.progress.lastPackId,
       packStats: {},
-      audioEnabled: DEFAULT_STATE.progress.audioEnabled
+      audio: createDefaultAudioPrefs()
     }
   };
 }
@@ -52,7 +92,7 @@ function cloneState(state) {
           }
         ])
       ),
-      audioEnabled: state.progress?.audioEnabled !== false
+      audio: cloneAudioPrefs(state.progress)
     }
   };
 }
@@ -136,7 +176,7 @@ function normaliseState(rawState) {
     tutorialCompleted: Boolean(rawState.progress?.tutorialCompleted),
     lastPackId: rawState.progress?.lastPackId ?? base.progress.lastPackId,
     packStats: {},
-    audioEnabled: rawState.progress?.audioEnabled !== false
+    audio: cloneAudioPrefs(rawState.progress)
   };
 
   const packStats = rawState.progress?.packStats;
@@ -212,24 +252,52 @@ export function recordScore({ modeId = "core", score = 0, packId = null, complet
 
 export function getProgress() {
   const state = readState();
-  return cloneState({
+  const progress = cloneState({
     version: state.version,
     highScores: {},
     progress: state.progress
   }).progress;
+  progress.audioEnabled = progress.audio.musicEnabled && progress.audio.effectsEnabled;
+  return progress;
 }
 
 export function getAudioEnabled() {
-  return readState().progress.audioEnabled !== false;
+  const prefs = getAudioPreferences();
+  return prefs.musicEnabled && prefs.effectsEnabled;
 }
 
 export function setAudioEnabled(value) {
   const enabled = value !== false;
+  setMusicPreference(enabled);
+  return setEffectsPreference(enabled);
+}
+
+export function getAudioPreferences() {
+  return cloneAudioPrefs(readState().progress);
+}
+
+export function setMusicPreference(value) {
+  const enabled = value !== false;
   const updated = updateState((state) => {
-    state.progress.audioEnabled = enabled;
+    if (!state.progress.audio || typeof state.progress.audio !== "object") {
+      state.progress.audio = createDefaultAudioPrefs();
+    }
+    state.progress.audio.musicEnabled = enabled;
     return state;
   });
-  return updated.progress.audioEnabled !== false;
+  return updated.progress.audio.musicEnabled !== false;
+}
+
+export function setEffectsPreference(value) {
+  const enabled = value !== false;
+  const updated = updateState((state) => {
+    if (!state.progress.audio || typeof state.progress.audio !== "object") {
+      state.progress.audio = createDefaultAudioPrefs();
+    }
+    state.progress.audio.effectsEnabled = enabled;
+    return state;
+  });
+  return updated.progress.audio.effectsEnabled !== false;
 }
 
 export function markTutorialCompleted() {
