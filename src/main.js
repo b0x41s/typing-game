@@ -3,7 +3,7 @@ import { createAudioController } from './audio/index.js';
 import { createAnimationController } from './ui/animations/index.js';
 import { createCoreLoop } from './ui/core-loop/index.js';
 import { createOnboarding } from './ui/onboarding/index.js';
-import { getProgress } from './storage/local/index.js';
+import { getProgress, setAudioEnabled } from './storage/local/index.js';
 
 const DEFAULT_PACK_ID = 'beginner';
 const RUN_DURATION_SECONDS = 60;
@@ -54,6 +54,23 @@ async function bootstrap() {
     results: app.querySelector('[data-screen="results"]')
   };
 
+  const audioToggleButton = app.querySelector('[data-action="toggle-audio"]');
+
+  function updateAudioToggle(enabled) {
+    if (!audioToggleButton) {
+      return;
+    }
+    audioToggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    const icon = audioToggleButton.querySelector('.audio-toggle-icon');
+    const label = audioToggleButton.querySelector('[data-audio-label]');
+    if (icon) {
+      icon.textContent = enabled ? '🔊' : '🔇';
+    }
+    if (label) {
+      label.textContent = enabled ? 'Geluid aan' : 'Geluid uit';
+    }
+  }
+
   hideAllScreens(screens);
   showLoading(screens, "Commando's laden…");
 
@@ -97,6 +114,36 @@ async function bootstrap() {
   const pack = await loadPackSafe(initialPackId);
 
   const audio = createAudioController();
+  const supportsWebAudio = typeof window !== 'undefined'
+    && (typeof window.AudioContext === 'function' || typeof window.webkitAudioContext === 'function');
+  const initialAudioEnabled = supportsWebAudio && progress.audioEnabled !== false;
+  audio.setEnabled(initialAudioEnabled);
+  updateAudioToggle(initialAudioEnabled);
+
+  if (audioToggleButton) {
+    if (!supportsWebAudio) {
+      audioToggleButton.disabled = true;
+      audioToggleButton.setAttribute('aria-pressed', 'false');
+      const icon = audioToggleButton.querySelector('.audio-toggle-icon');
+      const label = audioToggleButton.querySelector('[data-audio-label]');
+      if (icon) {
+        icon.textContent = '🚫';
+      }
+      if (label) {
+        label.textContent = 'Geen geluid';
+      }
+    } else {
+      audioToggleButton.addEventListener('click', () => {
+        const nextEnabled = !audio.isEnabled();
+        audio.setEnabled(nextEnabled);
+        if (nextEnabled) {
+          audio.unlock();
+        }
+        updateAudioToggle(nextEnabled);
+        setAudioEnabled(nextEnabled);
+      });
+    }
+  }
   const animations = createAnimationController();
 
   let coreLoop;
